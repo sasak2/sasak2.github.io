@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sasak2 포트폴리오 | 김현민</title>
+    <meta name="description" content="알고리즘과 전자공학에 관심 있는 경북대 전자공학부 1학년 김현민의 포트폴리오입니다.">
+    <meta name="author" content="김현민">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%23000'>S</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/@tabler/icons@2.44.0/tabler-icons.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="site">
+        <h1 class="sr-only">sasak2 포트폴리오 - 김현민</h1>
+
+        <nav class="nav" role="tablist">
+            <button class="nav-item" data-tab="main" onclick="switchTab('main')" role="tab" aria-selected="false" aria-controls="tab-main">메인</button>
+            <button class="nav-item" data-tab="links" onclick="switchTab('links')" role="tab" aria-selected="false" aria-controls="tab-links">링크</button>
+            <button class="nav-item" data-tab="history" onclick="switchTab('history')" role="tab" aria-selected="false" aria-controls="tab-history">이력</button>
+            <button class="nav-item" data-tab="work" onclick="switchTab('work')" role="tab" aria-selected="false" aria-controls="tab-work">작업</button>
+            <button class="nav-item" data-tab="blog" onclick="switchTab('blog')" role="tab" aria-selected="false" aria-controls="tab-blog">블로그</button>
+        </nav>
+
+        <div id="tab-main" class="section"></div>
+        <div id="tab-links" class="section"></div>
+        <div id="tab-history" class="section"></div>
+        <div id="tab-work" class="section"></div>
+        <div id="tab-blog" class="section"></div>
+
+        <footer class="footer"></footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
