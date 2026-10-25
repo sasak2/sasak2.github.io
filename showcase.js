@@ -965,6 +965,43 @@
             sections.forEach((s) => spy.observe(s));
         }
 
+        // PC: 휠을 조금만 굴려도 다음/이전 섹션으로 넘어가 화면 가운데에 자리잡는다.
+        // (CSS scroll-snap 만으로는 조금 굴리면 제자리로 돌아가서 보조로 둔다.
+        //  터치/키보드는 CSS 스냅이 처리하고, 마지막 섹션 아래 푸터 쪽은 일반 스크롤이다.)
+        const mainEl = document.getElementById('tab-main');
+        const list = Array.from(sections);
+        let locked = false;
+        let lastWheel = 0;
+        window.addEventListener(
+            'wheel',
+            (e) => {
+                if (e.ctrlKey || e.metaKey || e.shiftKey || Math.abs(e.deltaY) < 4 || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+                if (!mainEl.classList.contains('active') || !window.matchMedia('(min-width: 961px)').matches) return;
+                if (!e.target.closest || !e.target.closest('.site')) return;
+
+                const now = performance.now();
+                const gap = now - lastWheel;
+                lastWheel = now;
+
+                const mid = window.innerHeight / 2;
+                let cur = 0, best = Infinity;
+                list.forEach((el, i) => {
+                    const r = el.getBoundingClientRect();
+                    const d = Math.abs(r.top + r.height / 2 - mid);
+                    if (d < best) { best = d; cur = i; }
+                });
+                const next = list[cur + (e.deltaY > 0 ? 1 : -1)];
+                if (!next) return; // 처음/끝: 기본 스크롤
+
+                e.preventDefault();
+                if (locked || gap < 140) return;
+                locked = true;
+                next.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'center' });
+                setTimeout(() => { locked = false; }, 750);
+            },
+            { passive: false }
+        );
+
         // 태그별 글 수 표시. 글이 없으면 버튼 비활성화.
         getPosts().then((posts) => {
             sections.forEach((s) => {

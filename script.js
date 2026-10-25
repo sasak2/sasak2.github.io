@@ -63,7 +63,7 @@ async function route() {
         const target = document.getElementById('show-' + rest[0]);
         if (target) {
             const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            requestAnimationFrame(() => target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }));
+            requestAnimationFrame(() => target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' }));
         } else {
             window.scrollTo(0, 0);
         }
