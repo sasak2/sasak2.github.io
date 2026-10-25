@@ -5,6 +5,7 @@
 
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -36,7 +37,40 @@ function parseFrontMatter(text) {
 // posts/ 아래를 폴더째 훑는다.
 //   posts/<폴더>/<하위폴더>/<글>.md  ->  slug = "<폴더>/<하위폴더>/<글>"
 //   posts/<폴더>/_folder.json        ->  폴더 표시 이름/설명/순서 (없으면 폴더명 그대로)
+// 최종 수정일: front matter 의 updated 가 우선, 없으면 git 이력의 마지막 커밋 날짜.
+// 얕은 클론(--depth)에서는 git 날짜가 부정확하므로 쓰지 않는다 (GitHub Actions 는 fetch-depth: 0).
+function isShallow() {
+    try {
+        return execFileSync('git', ['rev-parse', '--is-shallow-repository'], { cwd: root, encoding: 'utf8' }).trim() !== 'false';
+    } catch (e) {
+        return true;
+    }
+}
+const shallow = isShallow();
+function gitUpdated(file) {
+    if (shallow) return '';
+    try {
+        return execFileSync('git', ['log', '-1', '--format=%cs', '--', file], { cwd: root, encoding: 'utf8' }).trim();
+    } catch (e) {
+        return '';
+    }
+}
+
+// 검색용 본문 텍스트 (마크다운 기호를 대충 걷어낸 것)
+function plainText(md) {
+    return md
+        .replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '')
+        .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+        .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/[`*_>#|~]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 20000);
+}
+
 const posts = [];
+const searchIndex = {};
 const folderMeta = new Map(); // path -> { title, description, order }
 
 function readFolderMeta(dir, relPath) {
@@ -66,7 +100,8 @@ function walk(dir, relPath) {
         }
         if (!entry.name.endsWith('.md')) continue;
         const slug = rel.slice(0, -3);
-        const meta = parseFrontMatter(readFileSync(join(dir, entry.name), 'utf8'));
+        const raw = readFileSync(join(dir, entry.name), 'utf8');
+        const meta = parseFrontMatter(raw);
         if (!meta) {
             console.warn(`건너뜀: ${rel} (front matter 없음)`);
             continue;
@@ -76,11 +111,14 @@ function walk(dir, relPath) {
             console.warn(`건너뜀: ${rel} (title 또는 date(YYYY-MM-DD) 누락)`);
             continue;
         }
+        const upd = /^\d{4}-\d{2}-\d{2}$/.test(meta.updated || '') ? meta.updated : gitUpdated(join('posts', rel));
+        searchIndex[slug] = plainText(raw);
         posts.push({
             slug,
             folder: relPath,
             title: meta.title,
             date: meta.date,
+            ...(upd && upd > meta.date ? { updated: upd } : {}),
             tags: Array.isArray(meta.tags) ? meta.tags : meta.tags ? [meta.tags] : [],
             summary: meta.summary || '',
         });
@@ -110,6 +148,7 @@ for (const path of folderMeta.keys()) {
 }
 
 writeFileSync(join(root, 'posts.json'), JSON.stringify({ folders, posts }, null, 2) + '\n');
+writeFileSync(join(root, 'search.json'), JSON.stringify(searchIndex) + '\n');
 console.log(`posts.json 생성: 글 ${posts.length}개, 폴더 ${folders.length}개`);
 
 // ---- 캐시 무효화: 정적 파일이 바뀌면 index.html 의 ?v= 값도 바뀐다 ----
