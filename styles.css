@@ -139,6 +139,14 @@ body {
     max-width: 680px;
 }
 
+#tab-blog {
+    max-width: 900px;
+}
+
+#tab-blog .post {
+    max-width: 680px;
+}
+
 .sr-only {
     position: absolute;
     left: -9999px;
@@ -781,34 +789,6 @@ body {
 }
 
 /* ---------- Blog (폴더 트리, 태그, 목록, 글) ---------- */
-.view-switch {
-    display: inline-flex;
-    gap: 2px;
-    padding: 3px;
-    margin-bottom: 1.2rem;
-    border: 1px solid var(--color-border-secondary);
-    border-radius: var(--border-radius-md);
-    background: var(--color-background-secondary);
-}
-
-.view-btn {
-    padding: 5px 14px;
-    border-radius: var(--border-radius-sm);
-    font-size: 13px;
-    color: var(--color-text-secondary);
-    text-decoration: none;
-}
-
-.view-btn:hover {
-    color: var(--color-text-primary);
-}
-
-.view-btn.active {
-    background: var(--color-text-primary);
-    color: var(--color-background-primary);
-    font-weight: 600;
-}
-
 .blog-crumb {
     display: flex;
     flex-wrap: wrap;
@@ -835,7 +815,93 @@ body {
 }
 
 .folder-head {
-    margin-bottom: 1.2rem;
+    margin-bottom: 0.6rem;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.folder-head-line {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.folder-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+}
+
+/* 왼쪽 폴더 트리 + 오른쪽 목록 */
+.blog-browse {
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 2.5rem;
+    align-items: start;
+}
+
+.blog-side .side-panel {
+    position: sticky;
+    top: 2rem;
+}
+
+.side-toggle {
+    display: none;
+}
+
+.blog-tree {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.tree-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+}
+
+.tree-item.top {
+    margin-top: 6px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.tree-item:hover .tree-name {
+    color: var(--color-text-primary);
+}
+
+.tree-item.active {
+    border-left-color: var(--color-text-primary);
+    color: var(--color-text-primary);
+}
+
+.tree-item.active .tree-name {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    font-weight: 700;
+}
+
+.tree-count {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+}
+
+.tag-box {
+    margin-top: 16px;
+}
+
+.blog-main {
+    min-width: 0;
 }
 
 .folder-title {
@@ -850,111 +916,6 @@ body {
     color: var(--color-text-secondary);
 }
 
-.blog-subhead {
-    margin: 1.5rem 0 0.2rem;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--color-text-tertiary);
-}
-
-.folder-tree {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.folder {
-    border: 1px solid var(--color-border-secondary);
-    border-radius: var(--border-radius-md);
-    background: var(--color-background-secondary);
-}
-
-.folder .folder {
-    background: transparent;
-}
-
-.folder-sum {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    cursor: pointer;
-    list-style: none;
-}
-
-.folder-sum::-webkit-details-marker {
-    display: none;
-}
-
-.folder-sum::before {
-    content: '';
-    flex: none;
-    width: 7px;
-    height: 7px;
-    border-right: 2px solid var(--color-text-tertiary);
-    border-bottom: 2px solid var(--color-text-tertiary);
-    transform: rotate(-45deg);
-    transition: transform 0.15s;
-}
-
-.folder[open] > .folder-sum::before {
-    transform: rotate(45deg);
-}
-
-.folder-main {
-    flex: 1;
-    min-width: 0;
-}
-
-.folder-line {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-}
-
-.folder-name {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--color-text-primary);
-}
-
-.folder-count {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--color-text-tertiary);
-}
-
-.folder-desc {
-    margin-top: 2px;
-    font-size: 12px;
-    color: var(--color-text-secondary);
-}
-
-.folder-go {
-    flex: none;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--color-text-tertiary);
-    text-decoration: none;
-    white-space: nowrap;
-}
-
-.folder-go:hover {
-    color: var(--color-text-primary);
-    text-decoration: underline;
-}
-
-.folder-body {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 0 16px 6px 35px;
-}
-
-.folder-body > .blog-list {
-    margin-bottom: 4px;
-}
-
 .blog-folder {
     font-size: 11px;
     color: var(--color-text-tertiary);
@@ -965,9 +926,8 @@ body {
     margin-top: 0.4rem;
 }
 
-.chip-label {
-    align-self: center;
-    margin-right: 2px;
+.tag-box-label {
+    margin-bottom: 8px;
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--color-text-tertiary);
@@ -1260,6 +1220,75 @@ a.tag-link:hover {
 }
 
 @media (max-width: 960px) {
+    .blog-browse {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1rem;
+    }
+
+    .blog-side .side-panel {
+        position: static;
+        display: none;
+        margin-top: 8px;
+        padding: 6px 4px 14px;
+        border: 1px solid var(--color-border-secondary);
+        border-radius: var(--border-radius-md);
+        background: var(--color-background-secondary);
+    }
+
+    .tree-open .side-panel {
+        display: block;
+    }
+
+    .blog-tree {
+        border-bottom: 0;
+        padding-bottom: 4px;
+    }
+
+    .tag-box {
+        padding: 0 10px;
+    }
+
+    .side-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 11px 14px;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        background: var(--color-background-secondary);
+        border: 1px solid var(--color-border-secondary);
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+    }
+
+    .side-toggle::before {
+        content: '폴더';
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--color-text-tertiary);
+        order: -1;
+        margin-right: auto;
+        padding-right: 12px;
+    }
+
+    .side-toggle::after {
+        content: '';
+        width: 7px;
+        height: 7px;
+        margin-left: 12px;
+        border-right: 2px solid var(--color-text-tertiary);
+        border-bottom: 2px solid var(--color-text-tertiary);
+        transform: rotate(45deg);
+    }
+
+    .tree-open .side-toggle::after {
+        transform: rotate(-135deg);
+    }
+
     html {
         scroll-snap-type: y proximity;
         scroll-padding-top: 48px;
