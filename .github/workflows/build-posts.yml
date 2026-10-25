@@ -20,19 +20,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 글의 최종 수정일을 git 이력에서 읽기 위해 전체 이력이 필요
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Generate posts.json and asset version
+      - name: Generate posts.json, search.json and asset version
         run: node scripts/build-posts.mjs
-      - name: Commit posts.json if changed
+      - name: Commit generated files if changed
         run: |
-          if git diff --quiet -- posts.json index.html; then
+          if git diff --quiet -- posts.json search.json index.html; then
             echo "변경 없음"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add posts.json index.html
+          git add posts.json search.json index.html
           git commit -m "chore: update posts.json and asset version"
           git push

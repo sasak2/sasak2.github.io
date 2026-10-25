@@ -47,6 +47,7 @@ function sendWhenReady(data, tries = 0) {
 
 function trackPageview(tab, rest) {
     let path = '/' + (tab === 'main' ? 'main' : [tab, ...rest].join('/'));
+    path = path.split('?')[0]; // 글 안 제목 이동(?h=)은 같은 글로 집계
     try { path = decodeURI(path); } catch (e) { /* 인코딩이 깨져 있으면 그대로 보낸다 */ }
     if (path === lastTrackedPath) return;
     const data = { path, title: path };
@@ -95,6 +96,7 @@ async function route() {
         // 탭이 바뀌었거나 블로그 안에서 목록/글을 오갈 때는 맨 위로
         window.scrollTo(0, 0);
     }
+    if (tab === 'blog' && window.blogAfterRoute) window.blogAfterRoute();
     currentTab = tab;
     trackPageview(tab, rest);
 }
@@ -103,6 +105,7 @@ async function route() {
 document.addEventListener('click', (e) => {
     const link = e.target.closest && e.target.closest('a[href^="#"]');
     if (!link) return;
+    if (link.classList.contains('h-anchor') || link.classList.contains('toc-link')) return;
     if (link.getAttribute('href') === window.location.hash) {
         e.preventDefault();
         route();
