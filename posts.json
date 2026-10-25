@@ -1,39 +1,104 @@
-[
-  {
-    "slug": "test-markdown-math",
-    "title": "테스트 글 3 - 수식, 표, 마크다운 종합",
-    "date": "2026-10-26",
-    "tags": [
-      "메타"
-    ],
-    "summary": "행렬, 연립방정식, 표, 코드, 목록, 이미지 등이 전부 잘 보이는지 확인하는 종합 테스트 글이에요."
-  },
-  {
-    "slug": "hello-blog",
-    "title": "블로그 글 쓰는 법",
-    "date": "2026-10-25",
-    "tags": [
-      "메타"
-    ],
-    "summary": "이 블로그는 마크다운 파일 하나를 올리면 글이 추가돼요. 형식을 정리해 둔 글이에요."
-  },
-  {
-    "slug": "test-algorithm",
-    "title": "테스트 글 1 - 알고리즘 태그",
-    "date": "2026-10-25",
-    "tags": [
-      "알고리즘"
-    ],
-    "summary": "글이 목록과 상세 화면에 잘 보이는지 확인하려고 올린 테스트 글이에요."
-  },
-  {
-    "slug": "test-multi-tag",
-    "title": "테스트 글 2 - 태그 두 개",
-    "date": "2026-10-24",
-    "tags": [
-      "전자",
-      "해킹"
-    ],
-    "summary": "태그가 여러 개일 때 필터와 칩이 잘 동작하는지 확인하는 테스트 글이에요."
-  }
-]
+{
+  "folders": [
+    {
+      "path": "algorithm",
+      "title": "알고리즘",
+      "description": "문제풀이와 자료구조 정리",
+      "order": 3
+    },
+    {
+      "path": "electronics",
+      "title": "전자공학",
+      "description": "회로, 반도체, 임베디드 공부 기록",
+      "order": 1
+    },
+    {
+      "path": "electronics/circuit-theory",
+      "title": "회로이론",
+      "description": "기본 회로 해석 개념 정리",
+      "order": 1
+    },
+    {
+      "path": "hacking",
+      "title": "해킹 / 보안",
+      "description": "CTF, 워게임, 하드웨어 보안",
+      "order": 2
+    },
+    {
+      "path": "hacking/dreamhack",
+      "title": "드림핵",
+      "description": "드림핵 워게임 풀이 기록 (번호순 기록)",
+      "order": 1
+    },
+    {
+      "path": "meta",
+      "title": "블로그 이야기",
+      "description": "이 블로그를 쓰고 관리하는 방법",
+      "order": 90
+    }
+  ],
+  "posts": [
+    {
+      "slug": "meta/test-markdown-math",
+      "folder": "meta",
+      "title": "테스트 글 3 - 수식, 표, 마크다운 종합",
+      "date": "2026-10-26",
+      "tags": [
+        "메타"
+      ],
+      "summary": "행렬, 연립방정식, 표, 코드, 목록, 이미지 등이 전부 잘 보이는지 확인하는 종합 테스트 글이에요."
+    },
+    {
+      "slug": "algorithm/test-algorithm",
+      "folder": "algorithm",
+      "title": "테스트 글 1 - 알고리즘 태그",
+      "date": "2026-10-25",
+      "tags": [
+        "알고리즘"
+      ],
+      "summary": "글이 목록과 상세 화면에 잘 보이는지 확인하려고 올린 테스트 글이에요."
+    },
+    {
+      "slug": "hacking/dreamhack/test-dh-002",
+      "folder": "hacking/dreamhack",
+      "title": "테스트 글 5 - 드림핵 폴더 예시 2",
+      "date": "2026-10-25",
+      "tags": [
+        "CTF",
+        "해킹"
+      ],
+      "summary": "같은 폴더의 두 번째 테스트 글이에요."
+    },
+    {
+      "slug": "meta/hello-blog",
+      "folder": "meta",
+      "title": "블로그 글 쓰는 법",
+      "date": "2026-10-25",
+      "tags": [
+        "메타"
+      ],
+      "summary": "이 블로그는 마크다운 파일 하나를 올리면 글이 추가돼요. 형식을 정리해 둔 글이에요."
+    },
+    {
+      "slug": "electronics/circuit-theory/test-multi-tag",
+      "folder": "electronics/circuit-theory",
+      "title": "테스트 글 2 - 태그 두 개",
+      "date": "2026-10-24",
+      "tags": [
+        "전자",
+        "해킹"
+      ],
+      "summary": "태그가 여러 개일 때 필터와 칩이 잘 동작하는지 확인하는 테스트 글이에요."
+    },
+    {
+      "slug": "hacking/dreamhack/test-dh-001",
+      "folder": "hacking/dreamhack",
+      "title": "테스트 글 4 - 드림핵 폴더 예시 1",
+      "date": "2026-10-23",
+      "tags": [
+        "CTF"
+      ],
+      "summary": "폴더 안에서 글이 날짜순으로 정렬되고 미리보기가 두 줄까지 잘 보이는지 확인하는 테스트 글이에요. 요약이 길어지면 두 줄에서 잘려야 해요. 이 문장은 일부러 길게 써서 줄임 처리가 되는지 보려는 용도예요."
+    }
+  ]
+}

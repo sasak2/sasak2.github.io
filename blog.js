@@ -1,21 +1,36 @@
-// 블로그: posts.json 으로 목록/태그 필터를 그리고, 글은 posts/<slug>.md 를 불러와 렌더링한다.
-// 주소 형식: #blog  /  #blog/tag/<태그>  /  #blog/post/<slug>
+// 블로그: posts.json 으로 폴더 트리/목록을 그리고, 글은 posts/<경로>.md 를 불러와 렌더링한다.
+// 주소 형식: #blog  /  #blog/folder/<폴더경로>  /  #blog/tag/<태그>  /  #blog/post/<폴더경로>/<글>
 
-const TAG_ORDER = ['전자', '해킹', '알고리즘', '메이커', '체스', '베이스'];
-
-let postsPromise = null;
-function getPosts() {
-    if (!postsPromise) {
-        postsPromise = fetch('posts.json', { cache: 'no-cache' })
-            .then((r) => (r.ok ? r.json() : []))
-            .then((list) => (Array.isArray(list) ? list : []))
-            .catch(() => []);
+let blogDataPromise = null;
+function getBlogData() {
+    if (!blogDataPromise) {
+        blogDataPromise = fetch('posts.json', { cache: 'no-cache' })
+            .then((r) => (r.ok ? r.json() : {}))
+            .catch(() => ({}))
+            .then((d) => {
+                const posts = Array.isArray(d) ? d : Array.isArray(d.posts) ? d.posts : [];
+                const folders = Array.isArray(d.folders) ? d.folders : [];
+                posts.forEach((p) => {
+                    if (typeof p.folder !== 'string') p.folder = '';
+                    if (!Array.isArray(p.tags)) p.tags = [];
+                });
+                return { folders, posts };
+            });
     }
-    return postsPromise;
+    return blogDataPromise;
 }
 
-function openBlog(tag) {
-    location.hash = tag ? '#blog/tag/' + encodeURIComponent(tag) : '#blog';
+function getPosts() {
+    return getBlogData().then((d) => d.posts);
+}
+
+function pathToHash(path) {
+    return path.split('/').map(encodeURIComponent).join('/');
+}
+
+// 폴더 경로(예: "hacking")를 주면 그 폴더 화면으로, 없으면 블로그 첫 화면으로 이동
+function openBlog(folder) {
+    location.hash = folder ? '#blog/folder/' + pathToHash(folder) : '#blog';
 }
 
 (function () {
@@ -28,45 +43,134 @@ function openBlog(tag) {
         return node;
     }
 
+    const parentOf = (path) => (path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '');
+    const inFolder = (p, path) => p.folder === path || p.folder.startsWith(path + '/');
+
+    function byOrder(a, b) {
+        return a.order - b.order || a.title.localeCompare(b.title, 'ko');
+    }
+
+    function folderTitle(data, path) {
+        const f = data.folders.find((x) => x.path === path);
+        return f ? f.title : path.split('/').pop();
+    }
+
     function sortedTags(posts) {
         const count = new Map();
         posts.forEach((p) => p.tags.forEach((t) => count.set(t, (count.get(t) || 0) + 1)));
-        const known = TAG_ORDER.filter((t) => count.has(t));
-        const rest = [...count.keys()].filter((t) => !TAG_ORDER.includes(t)).sort();
-        return [...known, ...rest].map((t) => [t, count.get(t)]);
+        return [...count.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ko'));
     }
 
     function renderChips(box, posts, active) {
         box.replaceChildren();
+        const tags = sortedTags(posts);
+        if (!tags.length) return;
+        box.appendChild(el('span', 'chip-label', '태그'));
         const make = (label, n, tag) => {
             const a = el('a', 'chip' + (tag === active ? ' active' : ''));
             a.href = tag ? '#blog/tag/' + encodeURIComponent(tag) : '#blog';
             a.append(label, el('span', 'chip-n', String(n)));
             box.appendChild(a);
         };
-        make('전체', posts.length, null);
-        sortedTags(posts).forEach(([t, n]) => make(t, n, t));
+        if (active) make('전체', posts.length, null);
+        tags.forEach(([t, n]) => make(t, n, t));
     }
 
-    function renderList(box, posts) {
+    // 경로 표시: 블로그 > 전자공학 > 회로이론 (마지막 항목은 링크 없이)
+    function renderCrumb(box, data, path, lastLabel, linkLast) {
         box.replaceChildren();
-        if (!posts.length) {
-            box.appendChild(el('div', 'blog-empty', '아직 글이 없어요.'));
+        const add = (label, href) => {
+            if (box.childNodes.length) box.appendChild(el('span', 'crumb-sep', '>'));
+            if (href) {
+                const a = el('a', 'crumb-link', label);
+                a.href = href;
+                box.appendChild(a);
+            } else {
+                box.appendChild(el('span', 'crumb-here', label));
+            }
+        };
+        const parts = path ? path.split('/') : [];
+        add('블로그', parts.length || lastLabel ? '#blog' : null);
+        parts.forEach((_, i) => {
+            const sub = parts.slice(0, i + 1).join('/');
+            const last = i === parts.length - 1 && !lastLabel && !linkLast;
+            add(folderTitle(data, sub), last ? null : '#blog/folder/' + pathToHash(sub));
+        });
+        if (lastLabel) add(lastLabel, null);
+    }
+
+    function postItem(p, data, showFolder) {
+        const a = el('a', 'blog-item');
+        a.href = '#blog/post/' + pathToHash(p.slug);
+        if (showFolder && p.folder) {
+            const names = p.folder.split('/').map((_, i, arr) => folderTitle(data, arr.slice(0, i + 1).join('/')));
+            a.appendChild(el('div', 'blog-folder', names.join(' > ')));
+        }
+        a.appendChild(el('div', 'blog-date', p.date.replace(/-/g, '.')));
+        a.appendChild(el('div', 'blog-title', p.title));
+        if (p.summary) a.appendChild(el('div', 'blog-preview', p.summary));
+        if (p.tags.length) {
+            const row = el('div', 'tag-row tag-row-sm');
+            p.tags.forEach((t) => row.appendChild(el('span', 'tag', t)));
+            a.appendChild(row);
+        }
+        return a;
+    }
+
+    function postList(posts, data, showFolder) {
+        const box = el('div', 'blog-list');
+        posts.forEach((p) => box.appendChild(postItem(p, data, showFolder)));
+        return box;
+    }
+
+    // 접었다 펼 수 있는 폴더 한 칸. 안에는 하위 폴더와 이 폴더의 글이 들어 있다.
+    function folderNode(data, folder) {
+        const det = el('details', 'folder');
+        const sum = el('summary', 'folder-sum');
+        const main = el('div', 'folder-main');
+        const line = el('div', 'folder-line');
+        line.appendChild(el('span', 'folder-name', folder.title));
+        line.appendChild(el('span', 'folder-count', String(data.posts.filter((p) => inFolder(p, folder.path)).length)));
+        main.appendChild(line);
+        if (folder.description) main.appendChild(el('div', 'folder-desc', folder.description));
+        sum.appendChild(main);
+        const go = el('a', 'folder-go', '이 폴더만 보기');
+        go.href = '#blog/folder/' + pathToHash(folder.path);
+        sum.appendChild(go);
+        det.appendChild(sum);
+
+        const body = el('div', 'folder-body');
+        data.folders.filter((f) => parentOf(f.path) === folder.path).sort(byOrder).forEach((f) => body.appendChild(folderNode(data, f)));
+        const direct = data.posts.filter((p) => p.folder === folder.path);
+        if (direct.length) body.appendChild(postList(direct, data, false));
+        det.appendChild(body);
+        return det;
+    }
+
+    function renderFolderView(box, data, path) {
+        box.replaceChildren();
+        const subs = data.folders.filter((f) => parentOf(f.path) === path).sort(byOrder);
+        const direct = data.posts.filter((p) => p.folder === path);
+        if (path) {
+            const f = data.folders.find((x) => x.path === path);
+            const head = el('div', 'folder-head');
+            head.appendChild(el('h3', 'folder-title', f ? f.title : path.split('/').pop()));
+            if (f && f.description) head.appendChild(el('div', 'folder-head-desc', f.description));
+            box.appendChild(head);
+        }
+        if (!subs.length && !direct.length) {
+            box.appendChild(el('div', 'blog-empty', path ? '이 폴더에는 아직 글이 없어요.' : '아직 글이 없어요.'));
             return;
         }
-        posts.forEach((p) => {
-            const a = el('a', 'blog-item');
-            a.href = '#blog/post/' + encodeURIComponent(p.slug);
-            a.appendChild(el('div', 'blog-date', p.date.replace(/-/g, '.')));
-            a.appendChild(el('div', 'blog-title', p.title));
-            if (p.summary) a.appendChild(el('div', 'blog-preview', p.summary));
-            if (p.tags.length) {
-                const row = el('div', 'tag-row tag-row-sm');
-                p.tags.forEach((t) => row.appendChild(el('span', 'tag', t)));
-                a.appendChild(row);
-            }
-            box.appendChild(a);
-        });
+        if (subs.length) {
+            const tree = el('div', 'folder-tree');
+            subs.forEach((f) => tree.appendChild(folderNode(data, f)));
+            box.appendChild(tree);
+        }
+        if (direct.length) {
+            if (subs.length) box.appendChild(el('div', 'blog-subhead', '이 폴더의 글'));
+            box.appendChild(postList(direct, data, false));
+        }
     }
 
     function stripFrontMatter(text) {
@@ -153,11 +257,11 @@ function openBlog(tag) {
         });
     }
 
-    async function renderPost(box, post, backTag) {
+    async function renderPost(box, data, post) {
         box.replaceChildren();
-        const back = el('a', 'post-back', '← 목록');
-        back.href = backTag ? '#blog/tag/' + encodeURIComponent(backTag) : '#blog';
-        box.appendChild(back);
+        const crumb = el('nav', 'blog-crumb post-crumb');
+        renderCrumb(crumb, data, post.folder, null, true);
+        box.appendChild(crumb);
         box.appendChild(el('div', 'blog-date', post.date.replace(/-/g, '.')));
         box.appendChild(el('h3', 'post-title', post.title));
         if (post.tags.length) {
@@ -174,7 +278,7 @@ function openBlog(tag) {
         body.textContent = '불러오는 중...';
 
         try {
-            const res = await fetch('posts/' + encodeURIComponent(post.slug) + '.md', { cache: 'no-cache' });
+            const res = await fetch('posts/' + post.slug.split('/').map(encodeURIComponent).join('/') + '.md', { cache: 'no-cache' });
             if (!res.ok) throw new Error(res.status);
             const md = stripFrontMatter(await res.text());
             if (window.marked) {
@@ -193,12 +297,13 @@ function openBlog(tag) {
     async function blogRoute(parts) {
         const mine = ++seq;
         const root = document.getElementById('tab-blog');
+        const crumb = root.querySelector('#blog-crumb');
         const chips = root.querySelector('#blog-chips');
-        const list = root.querySelector('#blog-list');
+        const view = root.querySelector('#blog-list');
         const post = root.querySelector('#blog-post');
-        if (!chips || !list || !post) return;
+        if (!crumb || !chips || !view || !post) return;
 
-        const posts = await getPosts();
+        const data = await getBlogData();
         if (mine !== seq) return;
 
         const safe = (s) => {
@@ -208,31 +313,48 @@ function openBlog(tag) {
                 return '';
             }
         };
+        const kind = parts[0];
+        const rest = parts.slice(1).map(safe).filter(Boolean).join('/');
 
-        if (parts[0] === 'post') {
-            const slug = safe(parts[1]);
-            const found = posts.find((p) => p.slug === slug);
+        if (kind === 'post') {
+            const found = data.posts.find((p) => p.slug === rest);
+            crumb.hidden = true;
             chips.hidden = true;
-            list.hidden = true;
+            view.hidden = true;
             post.hidden = false;
             if (!found) {
                 post.replaceChildren();
-                const back = el('a', 'post-back', '← 목록');
+                const back = el('a', 'post-back', '← 블로그');
                 back.href = '#blog';
                 post.append(back, el('div', 'blog-empty', '글을 찾을 수 없어요.'));
                 return;
             }
-            await renderPost(post, found, null);
+            await renderPost(post, data, found);
             return;
         }
 
-        const tag = parts[0] === 'tag' ? safe(parts[1]) : null;
         post.hidden = true;
         post.replaceChildren();
-        chips.hidden = false;
-        list.hidden = false;
-        renderChips(chips, posts, tag);
-        renderList(list, tag ? posts.filter((p) => p.tags.includes(tag)) : posts);
+        view.hidden = false;
+        crumb.hidden = false;
+
+        if (kind === 'tag') {
+            chips.hidden = false;
+            renderChips(chips, data.posts, rest);
+            renderCrumb(crumb, data, '', '#' + rest);
+            view.replaceChildren();
+            const hits = data.posts.filter((p) => p.tags.includes(rest));
+            if (hits.length) view.appendChild(postList(hits, data, true));
+            else view.appendChild(el('div', 'blog-empty', '이 태그의 글이 없어요.'));
+            return;
+        }
+
+        const path = kind === 'folder' ? rest : '';
+        renderCrumb(crumb, data, path, null);
+        crumb.hidden = !path;
+        chips.hidden = !!path;
+        if (!path) renderChips(chips, data.posts, null);
+        renderFolderView(view, data, path);
     }
 
     window.blogRoute = blogRoute;
