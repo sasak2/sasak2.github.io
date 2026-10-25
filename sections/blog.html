@@ -1,6 +1,13 @@
 <h2 class="section-title">블로그</h2>
-<div id="blog-switch" class="view-switch"></div>
 <nav id="blog-crumb" class="blog-crumb" hidden></nav>
-<div id="blog-chips" class="chip-row"></div>
-<div id="blog-list" class="blog-tree"></div>
+<div id="blog-browse" class="blog-browse">
+    <aside class="blog-side">
+        <button id="blog-side-toggle" class="side-toggle" type="button" aria-label="폴더 목록 열기/닫기"></button>
+        <div class="side-panel">
+            <div id="blog-tree" class="blog-tree" role="navigation" aria-label="블로그 폴더"></div>
+            <div id="blog-tags" class="tag-box"></div>
+        </div>
+    </aside>
+    <div id="blog-list" class="blog-main"></div>
+</div>
 <article id="blog-post" class="post" hidden></article>
