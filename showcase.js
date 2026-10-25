@@ -1026,13 +1026,14 @@
             { passive: false }
         );
 
-        // 태그별 글 수 표시. 글이 없으면 버튼 비활성화.
+        // 폴더별 글 수 표시. 글이 없으면 버튼 비활성화.
         getPosts().then((posts) => {
             sections.forEach((s) => {
-                if (!s.dataset.tag) return;
+                if (!s.dataset.folder) return;
                 const btn = s.querySelector('.show-btn');
                 if (!btn) return;
-                const n = posts.filter((p) => p.tags.includes(s.dataset.tag)).length;
+                const f = s.dataset.folder;
+                const n = posts.filter((p) => p.folder === f || p.folder.startsWith(f + '/')).length;
                 if (n > 0) {
                     btn.querySelector('.show-count').textContent = n;
                 } else {
