@@ -965,39 +965,63 @@
             sections.forEach((s) => spy.observe(s));
         }
 
-        // PC: 휠을 조금만 굴려도 다음/이전 섹션으로 넘어가 화면 가운데에 자리잡는다.
-        // (CSS scroll-snap 만으로는 조금 굴리면 제자리로 돌아가서 보조로 둔다.
-        //  터치/키보드는 CSS 스냅이 처리하고, 마지막 섹션 아래 푸터 쪽은 일반 스크롤이다.)
+        // PC: 휠/트랙패드 제스처의 "누적 이동량"으로 몇 칸 넘어갈지 정한다.
+        //   살짝(약 100~140px 이하) -> 1칸, 그 뒤로 SECTION_STEP_PX 만큼 더 굴릴 때마다 1칸 추가.
+        //   (CSS scroll-snap 은 터치/키보드용 보조. 처음/끝 섹션 너머는 기본 스크롤.)
+        const FIRST_STEP_PX = 140;   // 이 이하로 굴리면 1칸
+        const SECTION_STEP_PX = 240; // 이후 이만큼 더 굴릴 때마다 +1칸
+        const GESTURE_GAP_MS = 160;  // 이 시간 동안 휠 입력이 없으면 새 제스처
         const mainEl = document.getElementById('tab-main');
         const list = Array.from(sections);
-        let locked = false;
         let lastWheel = 0;
+        let lastJump = 0;
+        let gesture = null; // { base, dir, total, applied }
+        let targetIndex = 0;
+
+        function currentIndex() {
+            const mid = window.innerHeight / 2;
+            let cur = 0, best = Infinity;
+            list.forEach((el, i) => {
+                const r = el.getBoundingClientRect();
+                const d = Math.abs(r.top + r.height / 2 - mid);
+                if (d < best) { best = d; cur = i; }
+            });
+            return cur;
+        }
+
         window.addEventListener(
             'wheel',
             (e) => {
-                if (e.ctrlKey || e.metaKey || e.shiftKey || Math.abs(e.deltaY) < 4 || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+                if (e.ctrlKey || e.metaKey || e.shiftKey || Math.abs(e.deltaY) < 1 || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
                 if (!mainEl.classList.contains('active') || !window.matchMedia('(min-width: 961px)').matches) return;
                 if (!e.target.closest || !e.target.closest('.site')) return;
 
                 const now = performance.now();
                 const gap = now - lastWheel;
                 lastWheel = now;
+                const dir = e.deltaY > 0 ? 1 : -1;
 
-                const mid = window.innerHeight / 2;
-                let cur = 0, best = Infinity;
-                list.forEach((el, i) => {
-                    const r = el.getBoundingClientRect();
-                    const d = Math.abs(r.top + r.height / 2 - mid);
-                    if (d < best) { best = d; cur = i; }
-                });
-                const next = list[cur + (e.deltaY > 0 ? 1 : -1)];
-                if (!next) return; // 처음/끝: 기본 스크롤
+                if (!gesture || gap > GESTURE_GAP_MS || gesture.dir !== dir) {
+                    // 새 제스처. 직전 이동이 아직 진행 중이면 그 목적지에서 이어간다.
+                    const base = now - lastJump < 800 ? targetIndex : currentIndex();
+                    const edge = dir > 0 ? base >= list.length - 1 : base <= 0;
+                    if (edge) {
+                        gesture = null;
+                        return; // 처음/끝: 기본 스크롤
+                    }
+                    gesture = { base, dir, total: 0, applied: -1 };
+                }
 
                 e.preventDefault();
-                if (locked || gap < 140) return;
-                locked = true;
-                next.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'center' });
-                setTimeout(() => { locked = false; }, 750);
+                gesture.total += Math.abs(e.deltaY);
+                const extra = Math.max(0, gesture.total - FIRST_STEP_PX);
+                const steps = 1 + Math.floor(extra / SECTION_STEP_PX);
+                const next = Math.max(0, Math.min(list.length - 1, gesture.base + gesture.dir * steps));
+                if (next === gesture.applied) return;
+                gesture.applied = next;
+                targetIndex = next;
+                lastJump = now;
+                list[next].scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'center' });
             },
             { passive: false }
         );
