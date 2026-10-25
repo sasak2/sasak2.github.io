@@ -32,6 +32,30 @@ function parseHash() {
 let currentTab = null;
 let routeSeq = 0;
 
+// GoatCounter 집계. 주소가 해시(#blog/post/...)라 기본 집계로는 전부 "/" 한 곳으로 합쳐지므로 라우트마다 직접 보낸다.
+// 메인의 섹션 이동(#main/circuit 등)은 같은 페이지 안의 스크롤이라 /main 하나로 묶는다.
+let lastTrackedPath = null;
+
+function sendWhenReady(data, tries = 0) {
+    if (window.goatcounter && typeof window.goatcounter.count === 'function') {
+        window.goatcounter.count(data);
+    } else if (tries < 50) {
+        // count.js 는 async 로 로드되므로 준비될 때까지 잠깐 기다린다. 광고 차단기 등으로 막히면 조용히 포기한다.
+        setTimeout(() => sendWhenReady(data, tries + 1), 200);
+    }
+}
+
+function trackPageview(tab, rest) {
+    let path = '/' + (tab === 'main' ? 'main' : [tab, ...rest].join('/'));
+    try { path = decodeURI(path); } catch (e) { /* 인코딩이 깨져 있으면 그대로 보낸다 */ }
+    if (path === lastTrackedPath) return;
+    const data = { path, title: path };
+    // 첫 방문은 외부 유입 경로(document.referrer)를 쓰고, 이후 이동은 사이트 안에서 온 것으로 기록한다.
+    if (lastTrackedPath !== null) data.referrer = location.origin + lastTrackedPath;
+    lastTrackedPath = path;
+    sendWhenReady(data);
+}
+
 function setActiveLink(match) {
     document.querySelectorAll('.side-link').forEach(link => {
         link.classList.toggle('active', match(link));
@@ -72,6 +96,7 @@ async function route() {
         window.scrollTo(0, 0);
     }
     currentTab = tab;
+    trackPageview(tab, rest);
 }
 
 // 같은 주소의 사이드바 링크를 다시 눌러도 해당 위치로 이동
