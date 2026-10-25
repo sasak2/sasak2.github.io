@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="140" viewBox="0 0 480 140">
+  <rect width="480" height="140" rx="10" fill="#1d1d20"/>
+  <path d="M30 70 H150 V30 H260 V70 H330 V110 H450" fill="none" stroke="#60a5fa" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="30" cy="70" r="7" fill="#0a0a0b" stroke="#a1a1aa" stroke-width="3"/>
+  <circle cx="450" cy="110" r="9" fill="#0a0a0b" stroke="#a1a1aa" stroke-width="3"/>
+  <text x="240" y="130" fill="#a1a1aa" font-family="monospace" font-size="12" text-anchor="middle">test image (svg)</text>
+</svg>
