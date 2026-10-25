@@ -32,6 +32,12 @@ html, body {
     height: 100%;
 }
 
+/* 메인 섹션 스냅: 조금만 스크롤해도 다음 섹션이 화면 가운데에 맞춰 자리잡는다.
+   .show 가 보이는 메인 탭에서만 의미가 있고, 다른 탭은 스냅 대상이 없어 자유롭게 스크롤된다. */
+html {
+    scroll-snap-type: y mandatory;
+}
+
 body {
     font-family: var(--font-sans);
     background-color: var(--color-background-primary);
@@ -590,7 +596,8 @@ body {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
     gap: 3.5rem;
     align-items: center;
-    scroll-margin-top: 4rem;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
 }
 
 /* 올라오는 효과: 왼쪽 애니메이션 먼저, 오른쪽 글이 조금 늦게 */
@@ -975,6 +982,11 @@ a.tag-link:hover {
 }
 
 @media (max-width: 960px) {
+    html {
+        scroll-snap-type: y proximity;
+        scroll-padding-top: 48px;
+    }
+
     /* 사이드바 -> 위에 붙는 가로 메뉴 */
     .layout {
         display: block;
@@ -1048,7 +1060,6 @@ a.tag-link:hover {
     .show {
         grid-template-columns: minmax(0, 1fr);
         gap: 1.4rem;
-        scroll-margin-top: 4.5rem;
     }
 
     .showcase {
