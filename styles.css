@@ -781,6 +781,34 @@ body {
 }
 
 /* ---------- Blog (폴더 트리, 태그, 목록, 글) ---------- */
+.view-switch {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    margin-bottom: 1.2rem;
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-secondary);
+}
+
+.view-btn {
+    padding: 5px 14px;
+    border-radius: var(--border-radius-sm);
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+}
+
+.view-btn:hover {
+    color: var(--color-text-primary);
+}
+
+.view-btn.active {
+    background: var(--color-text-primary);
+    color: var(--color-background-primary);
+    font-weight: 600;
+}
+
 .blog-crumb {
     display: flex;
     flex-wrap: wrap;
