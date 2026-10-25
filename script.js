@@ -1,4 +1,9 @@
+document.documentElement.classList.add('js');
+
+const TABS = ['main', 'links', 'history', 'work', 'blog'];
 const loadedSections = new Set();
+// 섹션 HTML이 처음 로드된 직후 실행할 초기화 함수. showcase.js 등이 등록한다.
+const sectionInit = {};
 
 async function loadSection(tabName) {
     if (loadedSections.has(tabName)) return;
@@ -11,6 +16,7 @@ async function loadSection(tabName) {
             if (section) {
                 section.innerHTML = html;
                 loadedSections.add(tabName);
+                if (sectionInit[tabName]) sectionInit[tabName](section);
             }
         }
     } catch (e) {
@@ -18,55 +24,48 @@ async function loadSection(tabName) {
     }
 }
 
-async function switchTab(tabName) {
-    await loadSection(tabName);
+function parseHash() {
+    const [tab, ...rest] = window.location.hash.slice(1).split('/');
+    return { tab: TABS.includes(tab) ? tab : 'main', rest };
+}
+
+let currentTab = null;
+let routeSeq = 0;
+
+async function route() {
+    const mine = ++routeSeq;
+    const { tab, rest } = parseHash();
+    await loadSection(tab);
+    if (mine !== routeSeq) return;
 
     document.querySelectorAll('.nav-item').forEach(item => {
-        const isActive = item.getAttribute('data-tab') === tabName;
+        const isActive = item.getAttribute('data-tab') === tab;
         item.classList.toggle('active', isActive);
         item.setAttribute('aria-selected', isActive);
     });
 
     document.querySelectorAll('.section').forEach(section => {
-        const isActive = section.id === 'tab-' + tabName;
-        section.classList.toggle('active', isActive);
+        section.classList.toggle('active', section.id === 'tab-' + tab);
     });
 
-    history.pushState(null, null, '#' + tabName);
+    if (tab === 'blog' && window.blogRoute) await window.blogRoute(rest);
+
+    // 탭이 바뀌었거나 블로그 안에서 목록/글을 오갈 때는 맨 위로
+    if (tab !== currentTab || tab === 'blog') window.scrollTo(0, 0);
+    currentTab = tab;
+}
+
+function switchTab(tabName) {
+    if (window.location.hash.slice(1) === tabName) {
+        route();
+    } else {
+        window.location.hash = tabName;
+    }
 }
 
 function openLink(url) {
     window.open(url, '_blank');
 }
 
-function scrollToBlog(blogId) {
-    switchTab('blog').then(() => {
-        setTimeout(() => {
-            const blogItem = document.querySelector(`[data-blog-id="${blogId}"]`);
-            if (blogItem) {
-                blogItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                blogItem.style.background = 'var(--color-background-secondary)';
-                blogItem.style.borderRadius = 'var(--border-radius-sm)';
-                setTimeout(() => {
-                    blogItem.style.background = '';
-                    blogItem.style.borderRadius = '';
-                }, 1500);
-            }
-        }, 100);
-    });
-}
-
-window.addEventListener('load', async () => {
-    const hash = window.location.hash.slice(1);
-    const initialTab = (hash && ['main', 'links', 'history', 'work', 'blog'].includes(hash))
-        ? hash
-        : 'main';
-    await switchTab(initialTab);
-});
-
-window.addEventListener('hashchange', () => {
-    const hash = window.location.hash.slice(1);
-    if (hash && ['main', 'links', 'history', 'work', 'blog'].includes(hash)) {
-        switchTab(hash);
-    }
-});
+window.addEventListener('load', route);
+window.addEventListener('hashchange', route);
