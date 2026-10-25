@@ -37,4 +37,6 @@ summary: 목록에 보일 한 줄 요약
 
 `posts/img/` 에 이미지를 넣고 `![설명](posts/img/파일.png)` 로 불러와요.
 
+수식은 `$x^2$` 처럼 한 줄 안에, 또는 `$$ ... $$` 로 별도 줄에 LaTeX로 써요.
+
 초안으로 두고 싶으면 front matter에 `draft: true` 를 적어요.
