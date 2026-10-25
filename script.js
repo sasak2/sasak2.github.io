@@ -9,7 +9,7 @@ async function loadSection(tabName) {
     if (loadedSections.has(tabName)) return;
 
     try {
-        const response = await fetch(`sections/${tabName}.html`);
+        const response = await fetch(`sections/${tabName}.html`, { cache: 'no-cache' });
         if (response.ok) {
             const html = await response.text();
             const section = document.getElementById('tab-' + tabName);
