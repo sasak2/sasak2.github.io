@@ -937,6 +937,57 @@ a.tag-link:hover {
     font-size: inherit;
 }
 
+/* highlight.js 테마가 넣는 배경/여백은 사이트 스타일을 따른다 */
+.post-body pre code.hljs {
+    display: inline;
+    background: none;
+    padding: 0;
+    overflow: visible;
+}
+
+/* 코드 블록 상자: 언어 라벨 + 복사 버튼 */
+.code-block {
+    border: 1px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-secondary);
+    overflow: hidden;
+}
+
+.code-block pre {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    margin: 0;
+}
+
+.code-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px 4px 16px;
+    border-bottom: 1px solid var(--color-border-secondary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.04em;
+}
+
+.code-copy {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    background: transparent;
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--border-radius-sm);
+    padding: 2px 8px;
+    cursor: pointer;
+}
+
+.code-copy:hover {
+    color: var(--color-text-primary);
+    border-color: var(--color-text-tertiary);
+}
+
 .post-body blockquote {
     border-left: 3px solid var(--color-border-primary);
     padding-left: 14px;

@@ -103,6 +103,56 @@ function openBlog(tag) {
         return html;
     }
 
+    // 코드 블록: 문법 색 강조 + 언어 라벨 + 복사 버튼
+    function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+        return new Promise((resolve, reject) => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy') ? resolve() : reject(new Error('copy failed'));
+            } catch (e) {
+                reject(e);
+            } finally {
+                ta.remove();
+            }
+        });
+    }
+
+    function enhanceCode(root) {
+        root.querySelectorAll('pre').forEach((pre) => {
+            const code = pre.querySelector('code');
+            if (!code || pre.parentNode.classList.contains('code-block')) return;
+            const m = /language-([\w+#.-]+)/.exec(code.className);
+            const lang = m ? m[1] : '';
+            if (lang && window.hljs && window.hljs.getLanguage(lang)) {
+                try {
+                    window.hljs.highlightElement(code);
+                } catch (e) { /* 색 강조 없이 표시 */ }
+            }
+
+            const wrap = el('div', 'code-block');
+            const bar = el('div', 'code-bar');
+            bar.appendChild(el('span', 'code-lang', lang));
+            const btn = el('button', 'code-copy', '복사');
+            btn.type = 'button';
+            btn.addEventListener('click', () => {
+                copyText(code.innerText.replace(/\n$/, '')).then(
+                    () => { btn.textContent = '복사됨'; },
+                    () => { btn.textContent = '실패'; }
+                );
+                setTimeout(() => { btn.textContent = '복사'; }, 1500);
+            });
+            bar.appendChild(btn);
+            pre.parentNode.insertBefore(wrap, pre);
+            wrap.append(bar, pre);
+        });
+    }
+
     async function renderPost(box, post, backTag) {
         box.replaceChildren();
         const back = el('a', 'post-back', '← 목록');
@@ -129,6 +179,7 @@ function openBlog(tag) {
             const md = stripFrontMatter(await res.text());
             if (window.marked) {
                 body.innerHTML = renderMarkdown(md);
+                enhanceCode(body);
             } else {
                 const pre = el('pre', 'post-raw', md);
                 body.replaceChildren(pre);

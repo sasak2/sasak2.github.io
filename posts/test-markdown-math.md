@@ -150,6 +150,58 @@ def bfs(graph, start):
 echo "$HOME costs $5 and $10"
 ```
 
+### 여러 언어
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+// 백준 스타일 입출력
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int n; cin >> n;
+    vector<long long> a(n);
+    for (auto &x : a) cin >> x;
+    cout << accumulate(a.begin(), a.end(), 0LL) << '\n';
+}
+```
+
+```verilog
+module counter(input clk, input rst, output reg [3:0] q);
+    always @(posedge clk or posedge rst) begin
+        if (rst) q <= 4'd0;
+        else     q <= q + 4'd1;   // 4비트 카운터
+    end
+endmodule
+```
+
+```c
+#include <avr/io.h>
+int main(void) {
+    DDRB |= (1 << PB5);      /* PB5 출력 */
+    for (;;) PORTB ^= (1 << PB5);
+}
+```
+
+```armasm
+    MOV   R0, #10
+loop:
+    SUBS  R0, R0, #1
+    BNE   loop
+```
+
+언어를 안 쓴 블록과 모르는 언어는 색 없이 그대로 보여요.
+
+```
+출력 예시
+3 1 4 1 5
+```
+
+```mylang
+this is not a known language
+```
+
 ## 10. 이미지와 접기
 
 ![테스트 이미지](posts/img/test-diagram.svg)
