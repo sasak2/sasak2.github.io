@@ -1,5 +1,6 @@
 // 블로그: posts.json 으로 폴더 트리/목록을 그리고, 글은 posts/<경로>.md 를 불러와 렌더링한다.
-// 주소 형식: #blog  /  #blog/folder/<폴더경로>  /  #blog/all[/<폴더경로>]  /  #blog/tag/<태그>  /  #blog/post/<폴더경로>/<글>
+// 화면: 왼쪽 폴더 트리(항상 펼침) + 오른쪽 글 목록(최신순). 폴더를 누르면 그 아래 모든 글이 보인다.
+// 주소 형식: #blog(전체글)  /  #blog/folder/<폴더경로>  /  #blog/tag/<태그>  /  #blog/post/<폴더경로>/<글>
 
 let blogDataPromise = null;
 function getBlogData() {
@@ -65,15 +66,15 @@ function openBlog(folder) {
         box.replaceChildren();
         const tags = sortedTags(posts);
         if (!tags.length) return;
-        box.appendChild(el('span', 'chip-label', '태그'));
-        const make = (label, n, tag) => {
-            const a = el('a', 'chip' + (tag === active ? ' active' : ''));
-            a.href = tag ? '#blog/tag/' + encodeURIComponent(tag) : '#blog';
-            a.append(label, el('span', 'chip-n', String(n)));
-            box.appendChild(a);
-        };
-        if (active) make('전체', posts.length, null);
-        tags.forEach(([t, n]) => make(t, n, t));
+        box.appendChild(el('div', 'tag-box-label', '태그'));
+        const wrap = el('div', 'chip-row');
+        tags.forEach(([t, n]) => {
+            const a = el('a', 'chip' + (t === active ? ' active' : ''));
+            a.href = '#blog/tag/' + encodeURIComponent(t);
+            a.append(t, el('span', 'chip-n', String(n)));
+            wrap.appendChild(a);
+        });
+        box.appendChild(wrap);
     }
 
     // 경로 표시: 블로그 > 전자공학 > 회로이론 (마지막 항목은 링크 없이)
@@ -97,18 +98,6 @@ function openBlog(folder) {
             add(folderTitle(data, sub), last ? null : '#blog/folder/' + pathToHash(sub));
         });
         if (lastLabel) add(lastLabel, null);
-    }
-
-    // 보기 전환: 폴더별(트리) / 전체(날짜순 나열)
-    function renderViewSwitch(box, path, mode) {
-        box.replaceChildren();
-        const make = (label, href, on) => {
-            const a = el('a', 'view-btn' + (on ? ' active' : ''), label);
-            a.href = href;
-            box.appendChild(a);
-        };
-        make('폴더별', path ? '#blog/folder/' + pathToHash(path) : '#blog', mode === 'folder');
-        make('전체', '#blog/all' + (path ? '/' + pathToHash(path) : ''), mode === 'all');
     }
 
     function postItem(p, data, showFolder) {
@@ -135,54 +124,41 @@ function openBlog(folder) {
         return box;
     }
 
-    // 접었다 펼 수 있는 폴더 한 칸. 안에는 하위 폴더와 이 폴더의 글이 들어 있다.
-    function folderNode(data, folder) {
-        const det = el('details', 'folder');
-        const sum = el('summary', 'folder-sum');
-        const main = el('div', 'folder-main');
-        const line = el('div', 'folder-line');
-        line.appendChild(el('span', 'folder-name', folder.title));
-        line.appendChild(el('span', 'folder-count', String(data.posts.filter((p) => inFolder(p, folder.path)).length)));
-        main.appendChild(line);
-        if (folder.description) main.appendChild(el('div', 'folder-desc', folder.description));
-        sum.appendChild(main);
-        const go = el('a', 'folder-go', '이 폴더만 보기');
-        go.href = '#blog/folder/' + pathToHash(folder.path);
-        sum.appendChild(go);
-        det.appendChild(sum);
-
-        const body = el('div', 'folder-body');
-        data.folders.filter((f) => parentOf(f.path) === folder.path).sort(byOrder).forEach((f) => body.appendChild(folderNode(data, f)));
-        const direct = data.posts.filter((p) => p.folder === folder.path);
-        if (direct.length) body.appendChild(postList(direct, data, false));
-        det.appendChild(body);
-        return det;
+    // 왼쪽 폴더 트리: 전체글 + 모든 폴더를 항상 펼쳐서 보여준다. 선택된 항목에는 밑줄.
+    function renderTree(box, data, selected) {
+        box.replaceChildren();
+        const row = (label, count, href, depth, on) => {
+            const a = el('a', 'tree-item' + (on ? ' active' : '') + (depth === 0 ? ' top' : ''));
+            a.href = href;
+            a.style.paddingLeft = 10 + depth * 16 + 'px';
+            a.appendChild(el('span', 'tree-name', label));
+            a.appendChild(el('span', 'tree-count', String(count)));
+            if (on) a.setAttribute('aria-current', 'page');
+            box.appendChild(a);
+        };
+        row('전체글', data.posts.length, '#blog', 0, selected === null);
+        const walkTree = (parent, depth) => {
+            data.folders
+                .filter((f) => parentOf(f.path) === parent)
+                .sort(byOrder)
+                .forEach((f) => {
+                    const n = data.posts.filter((p) => inFolder(p, f.path)).length;
+                    row(f.title, n, '#blog/folder/' + pathToHash(f.path), depth, selected === f.path);
+                    walkTree(f.path, depth + 1);
+                });
+        };
+        walkTree('', 0);
     }
 
-    function renderFolderView(box, data, path) {
-        box.replaceChildren();
-        const subs = data.folders.filter((f) => parentOf(f.path) === path).sort(byOrder);
-        const direct = data.posts.filter((p) => p.folder === path);
-        if (path) {
-            const f = data.folders.find((x) => x.path === path);
-            const head = el('div', 'folder-head');
-            head.appendChild(el('h3', 'folder-title', f ? f.title : path.split('/').pop()));
-            if (f && f.description) head.appendChild(el('div', 'folder-head-desc', f.description));
-            box.appendChild(head);
-        }
-        if (!subs.length && !direct.length) {
-            box.appendChild(el('div', 'blog-empty', path ? '이 폴더에는 아직 글이 없어요.' : '아직 글이 없어요.'));
-            return;
-        }
-        if (subs.length) {
-            const tree = el('div', 'folder-tree');
-            subs.forEach((f) => tree.appendChild(folderNode(data, f)));
-            box.appendChild(tree);
-        }
-        if (direct.length) {
-            if (subs.length) box.appendChild(el('div', 'blog-subhead', '이 폴더의 글'));
-            box.appendChild(postList(direct, data, false));
-        }
+    // 오른쪽 목록 머리말: 폴더/태그 이름, 설명, 글 수
+    function listHead(title, desc, count) {
+        const head = el('div', 'folder-head');
+        const line = el('div', 'folder-head-line');
+        line.appendChild(el('h3', 'folder-title', title));
+        line.appendChild(el('span', 'folder-count', count + '개의 글'));
+        head.appendChild(line);
+        if (desc) head.appendChild(el('div', 'folder-head-desc', desc));
+        return head;
     }
 
     function stripFrontMatter(text) {
@@ -310,11 +286,13 @@ function openBlog(folder) {
         const mine = ++seq;
         const root = document.getElementById('tab-blog');
         const crumb = root.querySelector('#blog-crumb');
-        const sw = root.querySelector('#blog-switch');
-        const chips = root.querySelector('#blog-chips');
+        const browse = root.querySelector('#blog-browse');
+        const toggle = root.querySelector('#blog-side-toggle');
+        const tree = root.querySelector('#blog-tree');
+        const tags = root.querySelector('#blog-tags');
         const view = root.querySelector('#blog-list');
         const post = root.querySelector('#blog-post');
-        if (!crumb || !sw || !chips || !view || !post) return;
+        if (!crumb || !browse || !toggle || !tree || !tags || !view || !post) return;
 
         const data = await getBlogData();
         if (mine !== seq) return;
@@ -331,10 +309,8 @@ function openBlog(folder) {
 
         if (kind === 'post') {
             const found = data.posts.find((p) => p.slug === rest);
+            browse.hidden = true;
             crumb.hidden = true;
-            sw.hidden = true;
-            chips.hidden = true;
-            view.hidden = true;
             post.hidden = false;
             if (!found) {
                 post.replaceChildren();
@@ -349,45 +325,43 @@ function openBlog(folder) {
 
         post.hidden = true;
         post.replaceChildren();
-        view.hidden = false;
-        crumb.hidden = false;
+        browse.hidden = false;
+        crumb.hidden = true;
+        browse.classList.remove('tree-open');
 
-        if (kind === 'tag') {
-            sw.hidden = true;
-            chips.hidden = false;
-            renderChips(chips, data.posts, rest);
-            renderCrumb(crumb, data, '', '#' + rest);
-            view.replaceChildren();
-            const hits = data.posts.filter((p) => p.tags.includes(rest));
-            if (hits.length) view.appendChild(postList(hits, data, true));
-            else view.appendChild(el('div', 'blog-empty', '이 태그의 글이 없어요.'));
-            return;
+        // 선택 상태: 전체글(null) / 폴더 경로 / 태그
+        const isTag = kind === 'tag';
+        const folder = kind === 'folder' && data.folders.some((f) => f.path === rest) ? rest : null;
+        renderTree(tree, data, isTag ? undefined : folder);
+        renderChips(tags, data.posts, isTag ? rest : null);
+
+        let hits;
+        let head;
+        if (isTag) {
+            hits = data.posts.filter((p) => p.tags.includes(rest));
+            head = listHead('#' + rest, '', hits.length);
+            toggle.textContent = '#' + rest;
+        } else if (folder) {
+            const f = data.folders.find((x) => x.path === folder);
+            hits = data.posts.filter((p) => inFolder(p, folder));
+            head = listHead(f.title, f.description, hits.length);
+            toggle.textContent = f.title;
+        } else {
+            hits = data.posts;
+            head = listHead('전체글', '모든 글을 최신순으로 보여줘요.', hits.length);
+            toggle.textContent = '전체글';
         }
 
-        const all = kind === 'all';
-        const path = kind === 'folder' || all ? rest : '';
-        renderViewSwitch(sw, path, all ? 'all' : 'folder');
-        sw.hidden = false;
-        renderCrumb(crumb, data, path, null);
-        crumb.hidden = !path;
-        chips.hidden = !!path || all;
-        if (!path && !all) renderChips(chips, data.posts, null);
-        if (all) {
-            // 이 폴더(없으면 블로그 전체)의 모든 글을 날짜순으로
-            view.replaceChildren();
-            if (path) {
-                const f = data.folders.find((x) => x.path === path);
-                const head = el('div', 'folder-head');
-                head.appendChild(el('h3', 'folder-title', f ? f.title : path.split('/').pop()));
-                view.appendChild(head);
-            }
-            const hits = data.posts.filter((p) => !path || inFolder(p, path));
-            if (hits.length) view.appendChild(postList(hits, data, true));
-            else view.appendChild(el('div', 'blog-empty', '아직 글이 없어요.'));
-            return;
-        }
-        renderFolderView(view, data, path);
+        view.replaceChildren(head);
+        if (hits.length) view.appendChild(postList(hits, data, true));
+        else view.appendChild(el('div', 'blog-empty', '아직 글이 없어요.'));
     }
+
+    // 모바일: 폴더 트리를 접었다 펴는 버튼
+    document.addEventListener('click', (e) => {
+        const t = e.target.closest && e.target.closest('#blog-side-toggle');
+        if (t) t.closest('#blog-browse').classList.toggle('tree-open');
+    });
 
     window.blogRoute = blogRoute;
 })();
