@@ -26,6 +26,7 @@ summary: 목록에 보일 한 줄 요약
 
 - 메인의 "확인해보기" 버튼은 태그와 연결돼요: `전자`, `해킹`, `알고리즘`, `메이커`, `체스`, `베이스`. 해당 태그 글이 없으면 버튼이 "준비 중"으로 비활성화돼요.
 - 이미지는 `posts/img/`에 넣고 `![설명](posts/img/파일.png)`로 불러와요.
+- 수식은 LaTeX로 써요: 인라인 `$O(n)$`, 별도 줄 `$$ ... $$` (KaTeX). 달러 기호 자체는 `\$`로 써요. 코드 블록 안은 그대로 보여요.
 - `draft: true`를 넣으면 목록에서 빠져요.
 - `main`에 푸시하면 GitHub Actions(`.github/workflows/build-posts.yml`)가 `posts.json`을 갱신해요. 직접 갱신하려면 `node scripts/build-posts.mjs`를 실행하세요.
 

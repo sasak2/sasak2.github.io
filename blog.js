@@ -73,6 +73,36 @@ function openBlog(tag) {
         return text.replace(/^﻿/, '').replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
     }
 
+    // 마크다운 변환기가 수식 안의 \ 나 _ 를 망가뜨리지 않도록,
+    // 코드 블록을 제외한 $...$ / $$...$$ 를 먼저 빼 두었다가 변환 후 KaTeX 로 되돌린다.
+    function renderMarkdown(md) {
+        const maths = [];
+        const parts = md.split(/(```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]*`)/);
+        for (let i = 0; i < parts.length; i += 2) {
+            parts[i] = parts[i]
+                .replace(/\$\$([\s\S]+?)\$\$/g, (m, tex) => {
+                    maths.push({ tex: tex.trim(), display: true, raw: m });
+                    return '@@MATH' + (maths.length - 1) + '@@';
+                })
+                .replace(/(^|[^\\$\w])\$(?!\s)([^$\n]+?)(?<!\s)\$(?![\w$])/g, (m, pre, tex) => {
+                    maths.push({ tex, display: false, raw: m.slice(pre.length) });
+                    return pre + '@@MATH' + (maths.length - 1) + '@@';
+                });
+        }
+        let html = window.marked.parse(parts.join(''));
+        html = html.replace(/@@MATH(\d+)@@/g, (m, n) => {
+            const item = maths[Number(n)];
+            if (!item) return m;
+            if (window.katex) {
+                try {
+                    return window.katex.renderToString(item.tex, { displayMode: item.display, throwOnError: false });
+                } catch (e) { /* 아래 원문으로 */ }
+            }
+            return item.raw.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+        });
+        return html;
+    }
+
     async function renderPost(box, post, backTag) {
         box.replaceChildren();
         const back = el('a', 'post-back', '← 목록');
@@ -98,7 +128,7 @@ function openBlog(tag) {
             if (!res.ok) throw new Error(res.status);
             const md = stripFrontMatter(await res.text());
             if (window.marked) {
-                body.innerHTML = window.marked.parse(md);
+                body.innerHTML = renderMarkdown(md);
             } else {
                 const pre = el('pre', 'post-raw', md);
                 body.replaceChildren(pre);
