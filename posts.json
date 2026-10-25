@@ -64,6 +64,7 @@
       "folder": "hacking/dreamhack",
       "title": "테스트 글 5 - 드림핵 폴더 예시 2",
       "date": "2026-10-25",
+      "updated": "2026-10-26",
       "tags": [
         "CTF",
         "해킹"
@@ -75,6 +76,7 @@
       "folder": "meta",
       "title": "블로그 글 쓰는 법",
       "date": "2026-10-25",
+      "updated": "2026-10-26",
       "tags": [
         "메타"
       ],
@@ -85,6 +87,7 @@
       "folder": "electronics/circuit-theory",
       "title": "테스트 글 2 - 태그 두 개",
       "date": "2026-10-24",
+      "updated": "2026-10-26",
       "tags": [
         "전자",
         "해킹"
@@ -96,6 +99,7 @@
       "folder": "hacking/dreamhack",
       "title": "테스트 글 4 - 드림핵 폴더 예시 1",
       "date": "2026-10-23",
+      "updated": "2026-10-26",
       "tags": [
         "CTF"
       ],
