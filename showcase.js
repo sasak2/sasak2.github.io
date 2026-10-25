@@ -67,6 +67,109 @@
         };
     }
 
+    /* ---------- 소개: 물음표를 단 실루엣이 올라온다 ---------- */
+
+    function animIntro(stage, C, accent) {
+        const cv = mkCanvas(stage);
+        const CYCLE = 9;
+        let t = 0;
+
+        function ease(x) {
+            x = Math.max(0, Math.min(1, x));
+            return 1 - Math.pow(1 - x, 3);
+        }
+        function pop(x) {
+            // 0 -> 1 로 튀어나오며 살짝 넘쳤다가 안정
+            x = Math.max(0, Math.min(1, x));
+            return 1 + Math.sin(x * Math.PI * 2.2) * Math.exp(-x * 4) * 0.35 - Math.exp(-x * 9) * 1;
+        }
+
+        return {
+            preview: 40,
+            resize: cv.resize,
+            update(dt) {
+                t = (t + dt) % CYCLE;
+            },
+            render() {
+                if (!cv.W) return;
+                const ctx = cv.ctx;
+                cv.clear();
+                const W = cv.W, H = cv.H;
+                const cx = W / 2;
+                const r = H * 0.14;
+
+                // 올라오기(0~1.5s) / 머무르기 / 가라앉기(7.6~8.6s)
+                const rise = ease(t / 1.5);
+                const sink = ease((t - 7.6) / 1.0);
+                const off = (1 - rise) * H * 0.55 + sink * H * 0.55;
+                const headY = H * 0.5 + off;
+                const shoulderY = headY + r * 1.55;
+                const sw = Math.min(W * 0.3, H * 0.5);
+
+                // 뒤쪽 빛
+                const glow = ctx.createRadialGradient(cx, H * 0.55, 0, cx, H * 0.55, H * 0.75);
+                glow.addColorStop(0, accent);
+                glow.addColorStop(1, 'rgba(0,0,0,0)');
+                withAlpha(ctx, 0.16 * rise * (1 - sink), () => {
+                    ctx.fillStyle = glow;
+                    ctx.fillRect(0, 0, W, H);
+                });
+
+                // 실루엣
+                const body = ctx.createLinearGradient(0, headY - r, 0, H);
+                body.addColorStop(0, '#34343b');
+                body.addColorStop(1, '#17171a');
+                ctx.fillStyle = body;
+                ctx.beginPath();
+                ctx.roundRect(cx - sw, shoulderY, sw * 2, H * 1.2, [sw * 0.6, sw * 0.6, 0, 0]);
+                ctx.fill();
+                ctx.fillRect(cx - r * 0.4, headY + r * 0.6, r * 0.8, r * 1.2);
+                ctx.beginPath();
+                ctx.arc(cx, headY, r, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 윗선 하이라이트
+                ctx.strokeStyle = accent;
+                ctx.lineWidth = 1.5;
+                withAlpha(ctx, 0.5, () => {
+                    ctx.beginPath();
+                    ctx.arc(cx, headY, r, Math.PI * 1.1, Math.PI * 1.9);
+                    ctx.stroke();
+                });
+
+                // 물음표 -> 느낌표
+                const q0 = 1.3, q1 = 4.6, q2 = 5.0;
+                let glyph = null, k = 0;
+                if (t >= q0 && t < q1) {
+                    glyph = '?';
+                    k = pop((t - q0) / 0.9);
+                } else if (t >= q1 && t < 7.6) {
+                    glyph = '!';
+                    k = pop((t - q1) / 0.8);
+                }
+                if (glyph) {
+                    const fade = 1 - sink;
+                    const bob = Math.sin(t * 3) * r * 0.08;
+                    const wiggle = glyph === '?' ? Math.sin(t * 2.4) * 0.12 : 0;
+                    ctx.save();
+                    ctx.translate(cx, headY - r * 2.1 + bob);
+                    ctx.rotate(wiggle);
+                    ctx.scale(Math.max(k, 0), Math.max(k, 0));
+                    ctx.font = '700 ' + Math.round(r * 1.7) + 'px "Courier Prime", monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = accent;
+                    ctx.shadowBlur = 16;
+                    withAlpha(ctx, fade, () => {
+                        ctx.fillStyle = glyph === '?' ? C.text : accent;
+                        ctx.fillText(glyph, 0, 0);
+                    });
+                    ctx.restore();
+                }
+            },
+        };
+    }
+
     /* ---------- 전자공학: PCB 트레이스 위를 달리는 신호 ---------- */
 
     function animCircuit(stage, C, accent) {
@@ -142,11 +245,14 @@
 
                 // IC
                 const x0 = 0.38 * cv.W, y0 = 0.36 * cv.H, w = 0.12 * cv.W, h = 0.28 * cv.H;
-                ctx.fillStyle = C.text;
+                ctx.fillStyle = '#34343b';
                 ctx.beginPath();
                 ctx.roundRect(x0, y0, w, h, 4);
                 ctx.fill();
-                ctx.fillStyle = C.bg2;
+                ctx.strokeStyle = C.ter;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.fillStyle = C.sec;
                 ctx.beginPath();
                 ctx.arc(x0 + 8, y0 + 8, 2.5, 0, Math.PI * 2);
                 ctx.fill();
@@ -379,7 +485,7 @@
                 for (let y = 0; y < ROWS; y++)
                     for (let x = 0; x < COLS; x++) {
                         box(x, y);
-                        ctx.fillStyle = walls.has(key(x, y)) ? C.text : C.bg3;
+                        ctx.fillStyle = walls.has(key(x, y)) ? '#4a4a52' : C.bg3;
                         ctx.fill();
                     }
                 const n = Math.floor(revealed);
@@ -587,7 +693,7 @@
 
                 for (let y = 0; y < 8; y++)
                     for (let x = 0; x < 8; x++) {
-                        ctx.fillStyle = (x + y) % 2 ? '#d6d6d6' : C.bg3;
+                        ctx.fillStyle = (x + y) % 2 ? '#5b5b63' : '#8f8f98';
                         ctx.fillRect(ox + x * cell, oy + y * cell, cell, cell);
                     }
                 if (lastFrom && lastTo) {
@@ -615,13 +721,15 @@
                 function draw(p, x, y) {
                     const gx = ox + (x + 0.5) * cell, gy = oy + (y + 0.54) * cell;
                     const ch = GLYPH[p.t] + '︎';
+                    ctx.lineWidth = Math.max(1.5, cell * 0.07);
                     if (p.c === 'w') {
-                        ctx.lineWidth = Math.max(1.5, cell * 0.07);
-                        ctx.strokeStyle = C.text;
+                        ctx.strokeStyle = '#000000';
                         ctx.strokeText(ch, gx, gy);
                         ctx.fillStyle = '#ffffff';
                     } else {
-                        ctx.fillStyle = C.text;
+                        ctx.strokeStyle = '#d4d4d8';
+                        ctx.strokeText(ch, gx, gy);
+                        ctx.fillStyle = '#0a0a0b';
                     }
                     ctx.fillText(ch, gx, gy);
                 }
@@ -741,6 +849,7 @@
     }
 
     const ANIMS = {
+        intro: animIntro,
         circuit: animCircuit,
         terminal: animTerminal,
         bfs: animBFS,
@@ -841,9 +950,25 @@
             });
         }
 
+        // 스크롤 위치에 맞춰 사이드바 강조 (화면 가운데 근처에 있는 섹션)
+        if ('IntersectionObserver' in window) {
+            const spy = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((e) => {
+                        if (!e.isIntersecting || !document.getElementById('tab-main').classList.contains('active')) return;
+                        const slug = e.target.dataset.anim;
+                        document.querySelectorAll('.side-link[data-go]').forEach((a) => a.classList.toggle('active', a.dataset.go === slug));
+                    });
+                },
+                { rootMargin: '-40% 0px -55% 0px' }
+            );
+            sections.forEach((s) => spy.observe(s));
+        }
+
         // 태그별 글 수 표시. 글이 없으면 버튼 비활성화.
         getPosts().then((posts) => {
             sections.forEach((s) => {
+                if (!s.dataset.tag) return;
                 const btn = s.querySelector('.show-btn');
                 if (!btn) return;
                 const n = posts.filter((p) => p.tags.includes(s.dataset.tag)).length;

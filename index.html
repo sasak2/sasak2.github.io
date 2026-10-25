@@ -6,38 +6,58 @@
     <title>sasak2 포트폴리오 | 김현민</title>
     <meta name="description" content="알고리즘과 전자공학에 관심 있는 경북대 전자공학부 1학년 김현민의 포트폴리오입니다.">
     <meta name="author" content="김현민">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%23000'>S</text></svg>">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0a0a0b">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%23fff'>S</text></svg>">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/@tabler/icons@2.44.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="styles.css?v=b882c32d">
+    <link rel="stylesheet" href="styles.css?v=66bda850">
 </head>
 <body>
-    <div class="site">
-        <h1 class="sr-only">sasak2 포트폴리오 - 김현민</h1>
+    <div class="layout">
+        <aside class="sidebar">
+            <a class="side-brand" href="#main/intro">sasak2</a>
+            <nav class="side-nav" aria-label="사이트 메뉴">
+                <div class="side-group">
+                    <div class="side-label">섹션</div>
+                    <a class="side-link" href="#main/intro" data-go="intro">소개</a>
+                    <a class="side-link" href="#main/circuit" data-go="circuit">전자공학</a>
+                    <a class="side-link" href="#main/terminal" data-go="terminal">해킹 / 보안</a>
+                    <a class="side-link" href="#main/bfs" data-go="bfs">알고리즘</a>
+                    <a class="side-link" href="#main/coilgun" data-go="coilgun">메이커</a>
+                    <a class="side-link" href="#main/chess" data-go="chess">체스</a>
+                    <a class="side-link" href="#main/bass" data-go="bass">베이스</a>
+                </div>
+                <div class="side-sep" aria-hidden="true"></div>
+                <div class="side-group">
+                    <div class="side-label">페이지</div>
+                    <a class="side-link" href="#history" data-tab="history">이력</a>
+                    <a class="side-link" href="#work" data-tab="work">작업</a>
+                    <a class="side-link" href="#blog" data-tab="blog">블로그</a>
+                    <a class="side-link" href="#links" data-tab="links">링크</a>
+                </div>
+            </nav>
+        </aside>
 
-        <nav class="nav" role="tablist">
-            <button class="nav-item" data-tab="main" onclick="switchTab('main')" role="tab" aria-selected="false" aria-controls="tab-main">메인</button>
-            <button class="nav-item" data-tab="links" onclick="switchTab('links')" role="tab" aria-selected="false" aria-controls="tab-links">링크</button>
-            <button class="nav-item" data-tab="history" onclick="switchTab('history')" role="tab" aria-selected="false" aria-controls="tab-history">이력</button>
-            <button class="nav-item" data-tab="work" onclick="switchTab('work')" role="tab" aria-selected="false" aria-controls="tab-work">작업</button>
-            <button class="nav-item" data-tab="blog" onclick="switchTab('blog')" role="tab" aria-selected="false" aria-controls="tab-blog">블로그</button>
-        </nav>
+        <main class="site">
+            <h1 class="sr-only">sasak2 포트폴리오 - 김현민</h1>
 
-        <div id="tab-main" class="section"></div>
-        <div id="tab-links" class="section"></div>
-        <div id="tab-history" class="section"></div>
-        <div id="tab-work" class="section"></div>
-        <div id="tab-blog" class="section"></div>
+            <div id="tab-main" class="section"></div>
+            <div id="tab-links" class="section"></div>
+            <div id="tab-history" class="section"></div>
+            <div id="tab-work" class="section"></div>
+            <div id="tab-blog" class="section"></div>
 
-        <footer class="footer"></footer>
+            <footer class="footer"></footer>
+        </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
-    <script src="script.js?v=b882c32d"></script>
-    <script src="showcase.js?v=b882c32d"></script>
-    <script src="blog.js?v=b882c32d"></script>
+    <script src="script.js?v=66bda850"></script>
+    <script src="showcase.js?v=66bda850"></script>
+    <script src="blog.js?v=66bda850"></script>
 </body>
 </html>

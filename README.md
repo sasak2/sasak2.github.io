@@ -4,8 +4,8 @@
 
 ## 구조
 
-- `index.html`, `script.js`, `styles.css`: 탭 전환과 공통 스타일. 탭 내용은 `sections/*.html`을 불러와요.
-- `showcase.js`: 메인 페이지 스크롤 애니메이션(전자, 해킹, 알고리즘, 메이커, 체스, 베이스). 순서와 문구는 `sections/main.html`에서 바꿔요.
+- `index.html`, `script.js`, `styles.css`: 왼쪽 사이드바(모바일은 상단 메뉴), 해시 라우팅, 다크 테마 스타일. 페이지 내용은 `sections/*.html`을 불러와요.
+- `showcase.js`: 메인 페이지 스크롤 애니메이션(소개, 전자, 해킹, 알고리즘, 메이커, 체스, 베이스). 순서와 문구는 `sections/main.html`에서, 사이드바 항목은 `index.html`에서 바꿔요. 파일을 고친 뒤에는 `node scripts/build-posts.mjs`를 실행해 캐시 버전(`?v=`)을 갱신하세요.
 - `blog.js`: 블로그 목록, 태그 필터, 글 렌더링.
 - `posts/*.md`: 블로그 글. `posts.json`은 이 파일들에서 자동으로 만들어져요.
 

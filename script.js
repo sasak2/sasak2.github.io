@@ -32,36 +32,57 @@ function parseHash() {
 let currentTab = null;
 let routeSeq = 0;
 
+function setActiveLink(match) {
+    document.querySelectorAll('.side-link').forEach(link => {
+        link.classList.toggle('active', match(link));
+    });
+}
+
 async function route() {
     const mine = ++routeSeq;
     const { tab, rest } = parseHash();
     await loadSection(tab);
     if (mine !== routeSeq) return;
 
-    document.querySelectorAll('.nav-item').forEach(item => {
-        const isActive = item.getAttribute('data-tab') === tab;
-        item.classList.toggle('active', isActive);
-        item.setAttribute('aria-selected', isActive);
-    });
-
     document.querySelectorAll('.section').forEach(section => {
         section.classList.toggle('active', section.id === 'tab-' + tab);
     });
 
-    if (tab === 'blog' && window.blogRoute) await window.blogRoute(rest);
+    // 사이드바 활성 표시. 메인에서는 스크롤 위치에 따라 showcase.js 가 계속 갱신한다.
+    if (tab === 'main') {
+        const slug = rest[0] || 'intro';
+        setActiveLink(link => link.dataset.go === slug);
+    } else {
+        setActiveLink(link => link.dataset.tab === tab);
+    }
 
-    // 탭이 바뀌었거나 블로그 안에서 목록/글을 오갈 때는 맨 위로
-    if (tab !== currentTab || tab === 'blog') window.scrollTo(0, 0);
+    if (tab === 'blog' && window.blogRoute) await window.blogRoute(rest);
+    if (mine !== routeSeq) return;
+
+    if (tab === 'main' && rest[0]) {
+        const target = document.getElementById('show-' + rest[0]);
+        if (target) {
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            requestAnimationFrame(() => target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }));
+        } else {
+            window.scrollTo(0, 0);
+        }
+    } else if (tab !== currentTab || tab === 'blog' || tab === 'main') {
+        // 탭이 바뀌었거나 블로그 안에서 목록/글을 오갈 때는 맨 위로
+        window.scrollTo(0, 0);
+    }
     currentTab = tab;
 }
 
-function switchTab(tabName) {
-    if (window.location.hash.slice(1) === tabName) {
+// 같은 주소의 사이드바 링크를 다시 눌러도 해당 위치로 이동
+document.addEventListener('click', (e) => {
+    const link = e.target.closest && e.target.closest('a[href^="#"]');
+    if (!link) return;
+    if (link.getAttribute('href') === window.location.hash) {
+        e.preventDefault();
         route();
-    } else {
-        window.location.hash = tabName;
     }
-}
+});
 
 function openLink(url) {
     window.open(url, '_blank');
