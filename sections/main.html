@@ -1,74 +1,93 @@
 <h2 class="sr-only">메인 소개</h2>
-<div class="hero-name">김현민<span class="hero-name-small">(sasak2)</span></div>
-<div class="hero-sub">Kim HyeonMin</div>
-
-<div class="info-list" style="margin-top: 2rem;">
-    <div class="info-item">
-        <div class="info-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
-        </div>
-        <div class="info-content">
-            <div class="info-label">이메일</div>
-            <div class="info-value">poocon0818@naver.com</div>
-        </div>
-    </div>
-    <div class="info-item">
-        <div class="info-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l10 4v4h-20v-4l10-4z"></path><rect x="2" y="6" width="20" height="12" rx="1"></rect><rect x="6" y="10" width="2" height="2"></rect><rect x="10" y="10" width="2" height="2"></rect><rect x="14" y="10" width="2" height="2"></rect><rect x="6" y="14" width="2" height="2"></rect><rect x="10" y="14" width="2" height="2"></rect><rect x="14" y="14" width="2" height="2"></rect></svg>
-        </div>
-        <div class="info-content">
-            <div class="info-label">학교</div>
-            <div class="info-value">경북대학교 전자공학부</div>
-        </div>
-    </div>
-</div>
-
 <div class="showcase" id="showcase">
-    <section class="show" data-tag="전자" data-anim="circuit" style="--accent: #2563eb;">
+    <section class="show show-intro" id="show-intro" data-anim="intro" data-tag="" style="--accent: #22d3ee;">
         <div class="show-stage"></div>
-        <div class="show-index">01 · 전자공학</div>
-        <h3 class="show-title">신호가 흐르는 길</h3>
-        <p class="show-desc">전자공학부 1학년이에요. 회로와 임베디드 시스템 쪽으로 방향을 잡고 있고, 눈에 안 보이는 동작 원리를 직접 확인하는 걸 좋아해요.</p>
-        <button class="show-btn" type="button" onclick="openBlog('전자')"><span class="show-label">확인해보기</span><span class="show-count"></span></button>
+        <div class="show-text">
+            <div class="show-index">00 · 소개</div>
+            <div class="hero-name">김현민<span class="hero-name-small">(sasak2)</span></div>
+            <div class="hero-sub">Kim HyeonMin</div>
+            <div class="info-list">
+                <div class="info-item">
+                    <div class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg></div>
+                    <div class="info-content">
+                        <div class="info-label">이메일</div>
+                        <a class="info-value" href="mailto:poocon0818@naver.com">poocon0818@naver.com</a>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l10 4v4h-20v-4l10-4z"></path><rect x="2" y="6" width="20" height="12" rx="1"></rect><rect x="6" y="10" width="2" height="2"></rect><rect x="10" y="10" width="2" height="2"></rect><rect x="14" y="10" width="2" height="2"></rect><rect x="6" y="14" width="2" height="2"></rect><rect x="10" y="14" width="2" height="2"></rect><rect x="14" y="14" width="2" height="2"></rect></svg></div>
+                    <div class="info-content">
+                        <div class="info-label">학교</div>
+                        <div class="info-value">경북대학교 전자공학부</div>
+                    </div>
+                </div>
+            </div>
+            <div class="intro-actions">
+                <a class="show-btn" href="#history">이력</a>
+                <a class="show-btn" href="#work">작업</a>
+                <a class="show-btn" href="#blog">블로그</a>
+                <a class="show-btn" href="#links">링크</a>
+            </div>
+        </div>
     </section>
 
-    <section class="show" data-tag="해킹" data-anim="terminal" style="--accent: #16a34a;">
+    <section class="show" id="show-circuit" data-tag="전자" data-anim="circuit" style="--accent: #60a5fa;">
         <div class="show-stage"></div>
-        <div class="show-index">02 · 해킹 / 보안</div>
-        <h3 class="show-title">펌웨어를 열어보기</h3>
-        <p class="show-desc">드림핵과 CTF로 공부하고 있어요. 장기적으로는 하드웨어 보안과 임베디드 해킹을 해보고 싶어요.</p>
-        <button class="show-btn" type="button" onclick="openBlog('해킹')"><span class="show-label">확인해보기</span><span class="show-count"></span></button>
+        <div class="show-text">
+            <div class="show-index">01 · 전자공학</div>
+            <h3 class="show-title">신호가 흐르는 길</h3>
+            <p class="show-desc">전자공학부 1학년이에요. 회로와 임베디드 시스템 쪽으로 방향을 잡고 있고, 눈에 안 보이는 동작 원리를 직접 확인하는 걸 좋아해요.</p>
+            <button class="show-btn" type="button" onclick="openBlog('전자')"><span class="show-label">확인해보기</span><span class="show-count"></span></button>
+        </div>
     </section>
 
-    <section class="show" data-tag="알고리즘" data-anim="bfs" style="--accent: #7c3aed;">
+    <section class="show" id="show-terminal" data-tag="해킹" data-anim="terminal" style="--accent: #4ade80;">
         <div class="show-stage"></div>
-        <div class="show-index">03 · 알고리즘</div>
-        <h3 class="show-title">가장 가까운 길 찾기</h3>
-        <p class="show-desc">백준 플래티넘이고, 직접 문제를 출제해 본 적도 있어요. 풀이와 출제 과정을 정리해요.</p>
-        <button class="show-btn" type="button" onclick="openBlog('알고리즘')"><span class="show-label">확인해보기</span><span class="show-count"></span></button>
+        <div class="show-text">
+            <div class="show-index">02 · 해킹 / 보안</div>
+            <h3 class="show-title">펌웨어를 열어보기</h3>
+            <p class="show-desc">드림핵과 CTF로 공부하고 있어요. 장기적으로는 하드웨어 보안과 임베디드 해킹을 해보고 싶어요.</p>
+            <button class="show-btn" type="button" onclick="openBlog('해킹')"><span class="show-label">확인해보기</span><span class="show-count"></span></button>
+        </div>
     </section>
 
-    <section class="show" data-tag="메이커" data-anim="coilgun" style="--accent: #ea580c;">
+    <section class="show" id="show-bfs" data-tag="알고리즘" data-anim="bfs" style="--accent: #a78bfa;">
         <div class="show-stage"></div>
-        <div class="show-index">04 · 메이커</div>
-        <h3 class="show-title">코일 하나씩 켜서 가속</h3>
-        <p class="show-desc">코일건처럼 이론을 실제로 만들어 보는 일을 좋아해요. 제작 과정과 시행착오를 기록해요.</p>
-        <button class="show-btn" type="button" onclick="openBlog('메이커')"><span class="show-label">확인해보기</span><span class="show-count"></span></button>
+        <div class="show-text">
+            <div class="show-index">03 · 알고리즘</div>
+            <h3 class="show-title">가장 가까운 길 찾기</h3>
+            <p class="show-desc">백준 플래티넘이고, 직접 문제를 출제해 본 적도 있어요. 풀이와 출제 과정을 정리해요.</p>
+            <button class="show-btn" type="button" onclick="openBlog('알고리즘')"><span class="show-label">확인해보기</span><span class="show-count"></span></button>
+        </div>
     </section>
 
-    <section class="show" data-tag="체스" data-anim="chess" style="--accent: #a16207;">
+    <section class="show" id="show-coilgun" data-tag="메이커" data-anim="coilgun" style="--accent: #fb923c;">
         <div class="show-stage"></div>
-        <div class="show-index">05 · 체스</div>
-        <h3 class="show-title">4수 메이트</h3>
-        <p class="show-desc">체스 관련 기록을 모아두는 자리예요.</p>
-        <button class="show-btn" type="button" onclick="openBlog('체스')"><span class="show-label">확인해보기</span><span class="show-count"></span></button>
+        <div class="show-text">
+            <div class="show-index">04 · 메이커</div>
+            <h3 class="show-title">코일 하나씩 켜서 가속</h3>
+            <p class="show-desc">코일건처럼 이론을 실제로 만들어 보는 일을 좋아해요. 제작 과정과 시행착오를 기록해요.</p>
+            <button class="show-btn" type="button" onclick="openBlog('메이커')"><span class="show-label">확인해보기</span><span class="show-count"></span></button>
+        </div>
     </section>
 
-    <section class="show" data-tag="베이스" data-anim="bass" style="--accent: #db2777;">
+    <section class="show" id="show-chess" data-tag="체스" data-anim="chess" style="--accent: #fbbf24;">
         <div class="show-stage"></div>
-        <div class="show-index">06 · 베이스</div>
-        <h3 class="show-title">줄이 울리는 모습</h3>
-        <p class="show-desc">베이스 기타 연습과 장비 이야기를 남겨요.</p>
-        <button class="show-btn" type="button" onclick="openBlog('베이스')"><span class="show-label">확인해보기</span><span class="show-count"></span></button>
+        <div class="show-text">
+            <div class="show-index">05 · 체스</div>
+            <h3 class="show-title">4수 메이트</h3>
+            <p class="show-desc">체스 관련 기록을 모아두는 자리예요.</p>
+            <button class="show-btn" type="button" onclick="openBlog('체스')"><span class="show-label">확인해보기</span><span class="show-count"></span></button>
+        </div>
+    </section>
+
+    <section class="show" id="show-bass" data-tag="베이스" data-anim="bass" style="--accent: #f472b6;">
+        <div class="show-stage"></div>
+        <div class="show-text">
+            <div class="show-index">06 · 베이스</div>
+            <h3 class="show-title">줄이 울리는 모습</h3>
+            <p class="show-desc">베이스 기타 연습과 장비 이야기를 남겨요.</p>
+            <button class="show-btn" type="button" onclick="openBlog('베이스')"><span class="show-label">확인해보기</span><span class="show-count"></span></button>
+        </div>
     </section>
 </div>
