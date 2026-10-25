@@ -1,5 +1,5 @@
 // 블로그: posts.json 으로 폴더 트리/목록을 그리고, 글은 posts/<경로>.md 를 불러와 렌더링한다.
-// 주소 형식: #blog  /  #blog/folder/<폴더경로>  /  #blog/tag/<태그>  /  #blog/post/<폴더경로>/<글>
+// 주소 형식: #blog  /  #blog/folder/<폴더경로>  /  #blog/all[/<폴더경로>]  /  #blog/tag/<태그>  /  #blog/post/<폴더경로>/<글>
 
 let blogDataPromise = null;
 function getBlogData() {
@@ -97,6 +97,18 @@ function openBlog(folder) {
             add(folderTitle(data, sub), last ? null : '#blog/folder/' + pathToHash(sub));
         });
         if (lastLabel) add(lastLabel, null);
+    }
+
+    // 보기 전환: 폴더별(트리) / 전체(날짜순 나열)
+    function renderViewSwitch(box, path, mode) {
+        box.replaceChildren();
+        const make = (label, href, on) => {
+            const a = el('a', 'view-btn' + (on ? ' active' : ''), label);
+            a.href = href;
+            box.appendChild(a);
+        };
+        make('폴더별', path ? '#blog/folder/' + pathToHash(path) : '#blog', mode === 'folder');
+        make('전체', '#blog/all' + (path ? '/' + pathToHash(path) : ''), mode === 'all');
     }
 
     function postItem(p, data, showFolder) {
@@ -298,10 +310,11 @@ function openBlog(folder) {
         const mine = ++seq;
         const root = document.getElementById('tab-blog');
         const crumb = root.querySelector('#blog-crumb');
+        const sw = root.querySelector('#blog-switch');
         const chips = root.querySelector('#blog-chips');
         const view = root.querySelector('#blog-list');
         const post = root.querySelector('#blog-post');
-        if (!crumb || !chips || !view || !post) return;
+        if (!crumb || !sw || !chips || !view || !post) return;
 
         const data = await getBlogData();
         if (mine !== seq) return;
@@ -319,6 +332,7 @@ function openBlog(folder) {
         if (kind === 'post') {
             const found = data.posts.find((p) => p.slug === rest);
             crumb.hidden = true;
+            sw.hidden = true;
             chips.hidden = true;
             view.hidden = true;
             post.hidden = false;
@@ -339,6 +353,7 @@ function openBlog(folder) {
         crumb.hidden = false;
 
         if (kind === 'tag') {
+            sw.hidden = true;
             chips.hidden = false;
             renderChips(chips, data.posts, rest);
             renderCrumb(crumb, data, '', '#' + rest);
@@ -349,11 +364,28 @@ function openBlog(folder) {
             return;
         }
 
-        const path = kind === 'folder' ? rest : '';
+        const all = kind === 'all';
+        const path = kind === 'folder' || all ? rest : '';
+        renderViewSwitch(sw, path, all ? 'all' : 'folder');
+        sw.hidden = false;
         renderCrumb(crumb, data, path, null);
         crumb.hidden = !path;
-        chips.hidden = !!path;
-        if (!path) renderChips(chips, data.posts, null);
+        chips.hidden = !!path || all;
+        if (!path && !all) renderChips(chips, data.posts, null);
+        if (all) {
+            // 이 폴더(없으면 블로그 전체)의 모든 글을 날짜순으로
+            view.replaceChildren();
+            if (path) {
+                const f = data.folders.find((x) => x.path === path);
+                const head = el('div', 'folder-head');
+                head.appendChild(el('h3', 'folder-title', f ? f.title : path.split('/').pop()));
+                view.appendChild(head);
+            }
+            const hits = data.posts.filter((p) => !path || inFolder(p, path));
+            if (hits.length) view.appendChild(postList(hits, data, true));
+            else view.appendChild(el('div', 'blog-empty', '아직 글이 없어요.'));
+            return;
+        }
         renderFolderView(view, data, path);
     }
 
