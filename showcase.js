@@ -575,98 +575,163 @@
         };
     }
 
-    /* ---------- 메이커: 코일건 ---------- */
+    /* ---------- 메이커: 두 발로 걷는 로봇 ---------- */
 
-    function animCoilgun(stage, C, accent) {
+    function animBiped(stage, C, accent) {
         const cv = mkCanvas(stage);
-        const COILS = [0.2, 0.34, 0.48, 0.62];
-        let p, v, wait, time;
-        function reset() {
-            p = 0.03;
-            v = 0.07;
-            wait = 0.6;
-            time = 0;
-        }
-        reset();
+        const TC = 1.3, STANCE = 0.55;
+        const SANS = '"Noto Sans KR", -apple-system, "Segoe UI", sans-serif';
+        const MONO = '"Courier Prime", "Noto Sans KR", monospace';
+        let t = 0, gOff = 0;
 
-        function energized(i) {
-            const dx = COILS[i] - p;
-            return dx > 0.012 && dx < 0.15;
+        const clampv = (x, a, b) => Math.max(a, Math.min(b, x));
+        const lerp = (a, b, k) => a + (b - a) * k;
+        function line(ctx, pts, color, w) {
+            ctx.beginPath();
+            ctx.moveTo(pts[0][0], pts[0][1]);
+            for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = w;
+            ctx.stroke();
+        }
+        function dotAt(ctx, x, y, r, color) {
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        // u: 한 다리의 보행 위상(0~1). 앞쪽 절반은 지면을 밀며 뒤로, 나머지는 들어서 앞으로 옮긴다.
+        function footAt(u, s, lift) {
+            if (u < STANCE) return [s / 2 - (s * u) / STANCE, 0];
+            const k = (u - STANCE) / (1 - STANCE);
+            return [-s / 2 + s * (k - Math.sin(2 * Math.PI * k) / (2 * Math.PI)), lift * Math.sin(Math.PI * k)];
+        }
+        function geom() {
+            const W = cv.W, H = cv.H;
+            const L = H * 0.2, hipY = H * 0.45;
+            return { W, H, L, hipY, ankleY: hipY + 1.8 * L, groundY: hipY + 1.8 * L + 7, s: L * 0.95, lift: L * 0.28 };
+        }
+        // 2링크 역기구학. 무릎은 앞쪽으로 꺾인다.
+        function ik(hx, hy, ax, ay, L) {
+            const dx = ax - hx, dy = ay - hy;
+            const d = Math.min(Math.hypot(dx, dy), 2 * L * 0.999);
+            const ux = dx / Math.hypot(dx, dy), uy = dy / Math.hypot(dx, dy);
+            const h = Math.sqrt(Math.max(0, L * L - (d / 2) * (d / 2)));
+            let px = uy, py = -ux;
+            if (px < 0) {
+                px = -px;
+                py = -py;
+            }
+            return [hx + ux * (d / 2) + px * h, hy + uy * (d / 2) + py * h, hx + ux * d, hy + uy * d];
         }
 
         return {
-            preview: 22,
+            preview: 40,
             resize: cv.resize,
             update(dt) {
-                time += dt;
-                if (wait > 0) {
-                    wait -= dt;
-                    return;
-                }
-                let on = false;
-                for (let i = 0; i < COILS.length; i++) if (energized(i)) on = true;
-                if (on) v += 0.9 * dt;
-                p += v * dt;
-                if (p > 1.12) reset();
+                if (!cv.W) return;
+                t += dt;
+                const g = geom();
+                gOff += dt * (g.s / (STANCE * TC));
             },
             render() {
                 if (!cv.W) return;
                 const ctx = cv.ctx;
                 cv.clear();
-                const W = cv.W, H = cv.H, cy = H / 2;
-                const tube = Math.min(16, H * 0.1);
-
-                // 총열
-                ctx.strokeStyle = C.sec;
-                ctx.lineWidth = 2.5;
+                const g = geom();
+                const fs = Math.round(clampv(g.H * 0.036, 9, 13));
+                const cx = g.W * 0.5;
+                const ph = t / TC;
+                const bob = Math.cos(4 * Math.PI * ph) * g.L * 0.03;
+                const hx = cx, hy = g.hipY + bob;
                 ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                // 지면: 점선이 뒤로 흘러 앞으로 걷는 느낌을 준다
+                line(ctx, [[0, g.groundY], [g.W, g.groundY]], C.ter, 2);
+                const sp = 34, off = gOff % sp;
+                ctx.strokeStyle = C.border;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.moveTo(0.05 * W, cy - tube);
-                ctx.lineTo(0.78 * W, cy - tube);
-                ctx.moveTo(0.05 * W, cy + tube);
-                ctx.lineTo(0.78 * W, cy + tube);
+                for (let x = -off; x < g.W + sp; x += sp) {
+                    ctx.moveTo(x, g.groundY + 8);
+                    ctx.lineTo(x + 12, g.groundY + 8);
+                }
                 ctx.stroke();
 
-                // 코일
-                COILS.forEach((cx, i) => {
-                    const on = energized(i) && wait <= 0;
-                    const x = cx * W;
-                    const hh = Math.min(34, H * 0.28);
-                    if (on) {
-                        const g = ctx.createRadialGradient(x, cy, 0, x, cy, hh * 2.2);
-                        g.addColorStop(0, accent);
-                        g.addColorStop(1, 'rgba(255,255,255,0)');
-                        withAlpha(ctx, 0.35 + 0.1 * Math.sin(time * 30), () => {
-                            ctx.fillStyle = g;
-                            ctx.beginPath();
-                            ctx.arc(x, cy, hh * 2.2, 0, Math.PI * 2);
-                            ctx.fill();
-                        });
-                    }
-                    ctx.strokeStyle = on ? accent : C.ter;
-                    ctx.lineWidth = 3;
-                    for (let k = -3; k <= 3; k++) {
-                        ctx.beginPath();
-                        ctx.moveTo(x + k * 5, cy - hh);
-                        ctx.lineTo(x + k * 5, cy + hh);
-                        ctx.stroke();
-                    }
+                const legs = [0.5, 0].map((o) => {
+                    const u = (((ph + o) % 1) + 1) % 1;
+                    const [fx, fl] = footAt(u, g.s, g.lift);
+                    const j = ik(hx, hy, hx + fx, g.ankleY - fl, g.L);
+                    return { kx: j[0], ky: j[1], ax: j[2], ay: j[3] };
                 });
-
-                // 탄체
-                const px = p * W;
-                const pw = Math.min(30, W * 0.05), ph = Math.min(12, H * 0.08);
-                ctx.fillStyle = C.text;
-                ctx.beginPath();
-                ctx.roundRect(px - pw / 2, cy - ph / 2, pw, ph, 3);
-                ctx.fill();
-                // 속도 잔상
-                const trail = Math.min(6, Math.floor(v * 14));
-                for (let k = 1; k <= trail; k++) {
-                    withAlpha(ctx, 0.18 / k * 2, () => {
-                        ctx.fillRect(px - pw / 2 - k * 7, cy - 1.5, 5, 3);
+                const drawLeg = (lg, col, w, jointCol) => {
+                    line(ctx, [[hx, hy], [lg.kx, lg.ky], [lg.ax, lg.ay]], col, w);
+                    line(ctx, [[lg.ax - g.L * 0.18, lg.ay + 5], [lg.ax + g.L * 0.42, lg.ay + 5]], col, w + 1);
+                    [[hx, hy], [lg.kx, lg.ky], [lg.ax, lg.ay]].forEach((p) => {
+                        dotAt(ctx, p[0], p[1], 5.5, C.bg2);
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = jointCol;
+                        ctx.stroke();
                     });
-                }
+                };
+                drawLeg(legs[0], C.ter, 6, C.sec); // 뒤쪽 다리
+
+                // 몸통과 머리
+                const bw = g.L * 1.15, bh = g.L * 0.95;
+                ctx.beginPath();
+                ctx.roundRect(hx - bw / 2, hy - bh, bw, bh, 8);
+                ctx.fillStyle = '#2a2a30';
+                ctx.fill();
+                ctx.strokeStyle = C.ter;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                const hw = bw * 0.78, hh = g.L * 0.45;
+                ctx.beginPath();
+                ctx.roundRect(hx - hw / 2 + bw * 0.08, hy - bh - hh - 3, hw, hh, 7);
+                ctx.fillStyle = '#34343b';
+                ctx.fill();
+                ctx.stroke();
+                dotAt(ctx, hx + bw * 0.28, hy - bh - hh / 2 - 3, 4, accent);
+                const beat = 0.5 + 0.5 * Math.sin(t * 6);
+                withAlpha(ctx, 0.3 + 0.7 * beat, () => dotAt(ctx, hx - bw * 0.22, hy - bh * 0.55, 4, accent));
+                line(ctx, [[hx - bw * 0.3, hy - bh * 0.2], [hx + bw * 0.3, hy - bh * 0.2]], C.border, 2);
+
+                drawLeg(legs[1], C.sec, 7, accent); // 앞쪽 다리
+
+                // 관절 각도 패널 (앞쪽 다리 기준)
+                const a = legs[1];
+                const hipDeg = (Math.atan2(a.kx - hx, a.ky - hy) * 180) / Math.PI;
+                const l1x = a.kx - hx, l1y = a.ky - hy, l2x = a.ax - a.kx, l2y = a.ay - a.ky;
+                const kneeDeg = (Math.acos(clampv((l1x * l2x + l1y * l2y) / (g.L * g.L), -1, 1)) * 180) / Math.PI;
+                const sgn = (v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(0) + '°';
+                const rows = [
+                    ['엉덩이 관절', sgn(hipDeg), accent],
+                    ['무릎 관절', sgn(kneeDeg), accent],
+                    ['보행 주기', (TC * 1000).toFixed(0) + ' ms', C.sec],
+                ];
+                const px = g.W * 0.05, py = g.H * 0.07, pw = Math.min(g.W * 0.34, 176), rh = fs * 2.1, pad = fs * 0.9;
+                ctx.beginPath();
+                ctx.roundRect(px, py, pw, pad * 2 + rh * rows.length - (rh - fs * 1.4), 8);
+                ctx.fillStyle = C.bg3;
+                ctx.fill();
+                ctx.strokeStyle = C.border;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                rows.forEach((r, i) => {
+                    const y = py + pad + fs * 0.9 + i * rh;
+                    ctx.textBaseline = 'middle';
+                    ctx.textAlign = 'left';
+                    ctx.font = '400 ' + (fs + 1) + 'px ' + SANS;
+                    ctx.fillStyle = C.ter;
+                    ctx.fillText(r[0], px + pad, y);
+                    ctx.textAlign = 'right';
+                    ctx.font = '700 ' + (fs + 3) + 'px ' + MONO;
+                    ctx.fillStyle = r[2];
+                    ctx.fillText(r[1], px + pw - pad, y);
+                    if (i < rows.length - 1) line(ctx, [[px + pad, y + rh / 2], [px + pw - pad, y + rh / 2]], C.border, 1);
+                });
             },
         };
     }
@@ -906,7 +971,7 @@
         circuit: animCircuit,
         terminal: animTerminal,
         bfs: animBFS,
-        coilgun: animCoilgun,
+        biped: animBiped,
         chess: animChess,
         bass: animBass,
     };
