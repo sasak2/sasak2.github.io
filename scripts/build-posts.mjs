@@ -159,6 +159,7 @@ function plainText(md) {
 }
 
 const posts = [];
+const unlistedPosts = []; // 링크로만 열리는 글 (목록, 검색, sitemap 에는 없음)
 const searchIndex = {};
 const rawBySlug = {};
 const folderMeta = new Map(); // path -> { title, description, order }
@@ -202,9 +203,8 @@ function walk(dir, relPath) {
             continue;
         }
         const upd = /^\d{4}-\d{2}-\d{2}$/.test(meta.updated || '') ? meta.updated : gitUpdated(join('posts', rel));
-        searchIndex[slug] = plainText(raw);
         rawBySlug[slug] = raw;
-        posts.push({
+        const item = {
             slug,
             folder: relPath,
             title: meta.title,
@@ -212,7 +212,15 @@ function walk(dir, relPath) {
             ...(upd && upd > meta.date ? { updated: upd } : {}),
             tags: Array.isArray(meta.tags) ? meta.tags : meta.tags ? [meta.tags] : [],
             summary: meta.summary || '',
-        });
+        };
+        // unlisted: true 인 글은 링크로만 열린다. 목록, 폴더 글 수, 태그, 이전/다음 글, 검색, sitemap 에는 빠지고
+        // 글 페이지(p/...)만 noindex 로 만들어진다. (posts.json, search.json 에도 들어가지 않는다)
+        if (meta.unlisted === 'true') {
+            unlistedPosts.push({ ...item, tags: [], unlisted: true });
+            continue;
+        }
+        searchIndex[slug] = plainText(raw);
+        posts.push(item);
     }
 }
 walk(postsDir, '');
@@ -418,7 +426,7 @@ const shellHtml = readFileSync(join(root, 'index.html'), 'utf8');
 const blogSectionHtml = readFileSync(join(root, 'sections', 'blog.html'), 'utf8');
 const pagesDir = join(root, 'p');
 rmSync(pagesDir, { recursive: true, force: true }); // 삭제된 글의 페이지가 남지 않게 매번 새로 만든다
-for (const post of posts) {
+for (const post of [...posts, ...unlistedPosts]) {
     const url = `${siteUrl}p/${encPath(post.slug)}/`;
     const hashUrl = `/#blog/post/${encPath(post.slug)}`;
     const desc = post.summary || plainText(rawBySlug[post.slug]).slice(0, 120);
@@ -439,7 +447,8 @@ for (const post of posts) {
             : '<span class="post-nav-empty"></span>';
     const postNav = prev || next ? `<nav class="post-nav">${navItem(prev, '← 이전 글', 'prev')}${navItem(next, '다음 글 →', 'next')}</nav>` : '';
 
-    const folderParts = post.folder ? post.folder.split('/') : [];
+    // 링크 전용(unlisted) 글은 폴더 이름을 드러내지 않고 "블로그" 만 보여준다 (blog.js 도 같음)
+    const folderParts = post.folder && !post.unlisted ? post.folder.split('/') : [];
     const crumb =
         `<a href="#blog">블로그</a>` +
         folderParts
@@ -468,12 +477,12 @@ for (const post of posts) {
     page = replaceOnce(page, '<meta charset="UTF-8">', '<meta charset="UTF-8">\n    <base href="/">', 'meta charset');
     page = replaceOnce(page, /<title>[\s\S]*?<\/title>/.exec(page)[0], `<title>${esc(post.title)} | sasak2</title>`, 'title');
     page = replaceOnce(page, /<meta name="description"[^>]*>/.exec(page)[0], `<meta name="description" content="${esc(desc)}">`, 'meta description');
-    page = replaceOnce(
-        page,
-        '</head>',
-        `    <link rel="canonical" href="${url}">\n    <meta property="og:type" content="article">\n    <meta property="og:title" content="${esc(post.title)}">\n    <meta property="og:description" content="${esc(desc)}">\n    <meta property="og:url" content="${url}">\n    <meta property="article:published_time" content="${post.date}">\n</head>`,
-        '</head>'
-    );
+    // 링크 전용 글: 검색엔진에 색인되지 않게 noindex 를 넣고, canonical/og:url 은 넣지 않는다.
+    // (robots.txt 로 막으면 검색엔진이 noindex 를 읽지 못하므로 robots.txt 는 건드리지 않는다)
+    const headExtra = post.unlisted
+        ? `    <meta name="robots" content="noindex, nofollow">\n    <meta property="og:type" content="article">\n    <meta property="og:title" content="${esc(post.title)}">\n</head>`
+        : `    <link rel="canonical" href="${url}">\n    <meta property="og:type" content="article">\n    <meta property="og:title" content="${esc(post.title)}">\n    <meta property="og:description" content="${esc(desc)}">\n    <meta property="og:url" content="${url}">\n    <meta property="article:published_time" content="${post.date}">\n</head>`;
+    page = replaceOnce(page, '</head>', headExtra, '</head>');
     page = replaceOnce(page, '<body>', `<body>\n    <script>history.replaceState(null, '', '${hashUrl}');</script>`, '<body>');
     page = replaceOnce(page, '<a class="side-link" href="#blog" data-tab="blog">', '<a class="side-link active" href="#blog" data-tab="blog">', '사이드바 블로그 링크');
     page = replaceOnce(page, '<div id="tab-blog" class="section"></div>', `<div id="tab-blog" class="section active">${blogSection}</div>`, '#tab-blog');
@@ -481,4 +490,4 @@ for (const post of posts) {
     mkdirSync(join(pagesDir, post.slug), { recursive: true });
     writeFileSync(join(pagesDir, post.slug, 'index.html'), page);
 }
-console.log(`p/ 글 페이지 생성: ${posts.length}개 (${renderers ? '전체 렌더링' : '간단한 형태'})`);
+console.log(`p/ 글 페이지 생성: ${posts.length}개${unlistedPosts.length ? ` + 링크 전용 ${unlistedPosts.length}개` : ''} (${renderers ? '전체 렌더링' : '간단한 형태'})`);
