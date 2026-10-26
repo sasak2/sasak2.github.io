@@ -10,7 +10,7 @@
     --color-border-tertiary: #1a1a1d;
     --color-accent: #f4f4f5;
     --font-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-mono: 'Courier Prime', 'SF Mono', Monaco, monospace;
+    --font-mono: 'Courier Prime', 'Noto Sans KR', 'SF Mono', Monaco, Consolas, monospace;
     --border-radius-sm: 4px;
     --border-radius-md: 6px;
     --border-radius-lg: 8px;
