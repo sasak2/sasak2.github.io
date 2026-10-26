@@ -736,16 +736,97 @@
         };
     }
 
-    /* ---------- 체스: 4수 메이트 ---------- */
+    /* ---------- 체스: 시실리안 하이퍼액셀러레이티드 드래곤 ---------- */
+
+    // 기물은 글꼴 대신 단순한 도형으로 직접 그린다. 한 칸을 1로 보고, 중심이 (0, 0)인 좌표계에서 그린다.
+    function drawPiece(ctx, type, white, cx, cy, cell) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(cell, cell);
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.lineWidth = 0.045;
+        const ink = white ? '#0b0b0d' : '#e4e4e7';
+        ctx.fillStyle = white ? '#fafafa' : '#17171b';
+        ctx.strokeStyle = ink;
+        const paint = () => {
+            ctx.fill();
+            ctx.stroke();
+        };
+        const poly = (pts) => {
+            ctx.beginPath();
+            pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
+            ctx.closePath();
+            paint();
+        };
+        const circle = (x, y, r) => {
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            paint();
+        };
+        const box = (x, y, w, h, r) => {
+            ctx.beginPath();
+            ctx.roundRect(x, y, w, h, r);
+            paint();
+        };
+
+        switch (type) {
+            case 'P':
+                poly([[-0.07, -0.06], [0.07, -0.06], [0.17, 0.28], [-0.17, 0.28]]);
+                circle(0, -0.16, 0.125);
+                break;
+            case 'R':
+                poly([[-0.17, -0.12], [0.17, -0.12], [0.2, 0.28], [-0.2, 0.28]]);
+                box(-0.23, -0.36, 0.11, 0.18, 0.015);
+                box(-0.055, -0.36, 0.11, 0.18, 0.015);
+                box(0.12, -0.36, 0.11, 0.18, 0.015);
+                box(-0.23, -0.2, 0.46, 0.09, 0.02);
+                break;
+            case 'N':
+                poly([[-0.2, 0.28], [0.24, 0.28], [0.22, 0.02], [0.18, -0.18], [0.08, -0.34], [0.04, -0.4], [-0.04, -0.32], [-0.3, -0.06], [-0.3, 0.04], [-0.22, 0.08], [-0.1, 0.02], [-0.02, 0], [-0.12, 0.14]]);
+                ctx.beginPath();
+                ctx.arc(-0.07, -0.19, 0.03, 0, Math.PI * 2);
+                ctx.fillStyle = ink;
+                ctx.fill();
+                break;
+            case 'B':
+                poly([[-0.09, 0.04], [0.09, 0.04], [0.18, 0.28], [-0.18, 0.28]]);
+                box(-0.17, 0, 0.34, 0.07, 0.03);
+                ctx.beginPath();
+                ctx.ellipse(0, -0.14, 0.13, 0.2, 0, 0, Math.PI * 2);
+                paint();
+                circle(0, -0.39, 0.045);
+                ctx.beginPath();
+                ctx.moveTo(0, -0.26);
+                ctx.lineTo(0.09, -0.13);
+                ctx.lineWidth = 0.04;
+                ctx.stroke();
+                break;
+            case 'Q':
+                poly([[-0.11, -0.04], [0.11, -0.04], [0.2, 0.28], [-0.2, 0.28]]);
+                poly([[-0.22, 0.02], [-0.26, -0.28], [-0.12, -0.12], [0, -0.33], [0.12, -0.12], [0.26, -0.28], [0.22, 0.02]]);
+                circle(-0.26, -0.31, 0.035);
+                circle(0, -0.37, 0.035);
+                circle(0.26, -0.31, 0.035);
+                break;
+            case 'K':
+                poly([[-0.11, -0.04], [0.11, -0.04], [0.2, 0.28], [-0.2, 0.28]]);
+                box(-0.2, -0.2, 0.4, 0.22, 0.07);
+                poly([[-0.03, -0.43], [0.03, -0.43], [0.03, -0.37], [0.09, -0.37], [0.09, -0.31], [0.03, -0.31], [0.03, -0.2], [-0.03, -0.2], [-0.03, -0.31], [-0.09, -0.31], [-0.09, -0.37], [-0.03, -0.37]]);
+                break;
+        }
+        box(-0.27, 0.28, 0.54, 0.11, 0.05);
+        ctx.restore();
+    }
 
     function animChess(stage, C, accent) {
         const cv = mkCanvas(stage);
-        const GLYPH = { K: '♚', Q: '♛', R: '♜', B: '♝', N: '♞', P: '♟' };
+        // 1. e4 c5 2. Nf3 g6 3. d4 cxd4 4. Nxd4 Bg7
         const MOVES = [
-            ['e4', 'e2', 'e4'], ['e5', 'e7', 'e5'],
-            ['Bc4', 'f1', 'c4'], ['Nc6', 'b8', 'c6'],
-            ['Qh5', 'd1', 'h5'], ['Nf6', 'g8', 'f6'],
-            ['Qxf7#', 'h5', 'f7'],
+            ['e4', 'e2', 'e4'], ['c5', 'c7', 'c5'],
+            ['Nf3', 'g1', 'f3'], ['g6', 'g7', 'g6'],
+            ['d4', 'd2', 'd4'], ['cxd4', 'c5', 'd4'],
+            ['Nxd4', 'f3', 'd4'], ['Bg7', 'f8', 'g7'],
         ];
         function sq(s) {
             return [s.charCodeAt(0) - 97, 8 - Number(s[1])];
@@ -772,14 +853,14 @@
         }
 
         return {
-            preview: 180,
+            preview: 200,
             resize: cv.resize,
             update(dt) {
                 t -= dt;
                 if (phase === 'pause' && t <= 0) {
                     if (mi >= MOVES.length) {
                         phase = 'end';
-                        t = 2.6;
+                        t = 3.4;
                     } else {
                         phase = 'move';
                         t = 0.6;
@@ -808,6 +889,7 @@
                 const size = Math.min(cv.H - 14, cv.W * 0.46);
                 const cell = size / 8;
                 const ox = 14, oy = (cv.H - size) / 2;
+                const done = phase === 'end' || (phase === 'pause' && mi === MOVES.length);
 
                 for (let y = 0; y < 8; y++)
                     for (let x = 0; x < 8; x++) {
@@ -821,6 +903,21 @@
                     });
                 }
 
+                // 마지막 수 뒤에는 드래곤 비숍의 긴 대각선(g7-a1)을 보여 준다
+                if (done) {
+                    ctx.save();
+                    ctx.setLineDash([cell * 0.2, cell * 0.16]);
+                    ctx.lineCap = 'round';
+                    ctx.lineWidth = Math.max(2, cell * 0.07);
+                    ctx.strokeStyle = accent;
+                    ctx.globalAlpha = 0.85;
+                    ctx.beginPath();
+                    ctx.moveTo(ox + 6.5 * cell, oy + 1.5 * cell);
+                    ctx.lineTo(ox + 0.5 * cell, oy + 7.5 * cell);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
                 // 이동 중인 기물
                 let moving = null, fx = 0, fy = 0;
                 if (phase === 'move') {
@@ -832,48 +929,20 @@
                     fx = a[0] + (b[0] - a[0]) * e;
                     fy = a[1] + (b[1] - a[1]) * e;
                 }
-
-                ctx.font = Math.floor(cell * 0.86) + 'px "Noto Sans KR", sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                function draw(p, x, y) {
-                    const gx = ox + (x + 0.5) * cell, gy = oy + (y + 0.54) * cell;
-                    const ch = GLYPH[p.t] + '︎';
-                    ctx.lineWidth = Math.max(1.5, cell * 0.07);
-                    if (p.c === 'w') {
-                        ctx.strokeStyle = '#000000';
-                        ctx.strokeText(ch, gx, gy);
-                        ctx.fillStyle = '#ffffff';
-                    } else {
-                        ctx.strokeStyle = '#d4d4d8';
-                        ctx.strokeText(ch, gx, gy);
-                        ctx.fillStyle = '#0a0a0b';
-                    }
-                    ctx.fillText(ch, gx, gy);
-                }
+                const draw = (p, x, y) => drawPiece(ctx, p.t, p.c === 'w', ox + (x + 0.5) * cell, oy + (y + 0.52) * cell, cell * 0.96);
                 pieces.forEach((p) => {
                     if (p !== moving) draw(p, p.x, p.y);
                 });
                 if (moving) draw(moving, fx, fy);
 
-                // 메이트 표시
-                if (phase === 'end' || (phase === 'pause' && mi === MOVES.length)) {
-                    const kx = ox + 4.5 * cell, ky = oy + 0.5 * cell;
-                    ctx.strokeStyle = accent;
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.arc(kx, ky, cell * 0.46, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-
-                // 기보
+                // 기보와 오프닝 이름
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'alphabetic';
                 const fs = Math.max(12, Math.min(16, cv.W * 0.032));
-                ctx.font = '700 ' + fs + 'px "Courier Prime", "Noto Sans KR", monospace';
                 const tx = ox + size + Math.max(18, cv.W * 0.06);
-                const rowH = fs * 1.9;
-                const ty = oy + (size - rowH * 4) / 2 + fs;
+                const rowH = fs * 1.9, nameH = fs * 1.55 * 3 + fs * 0.6;
+                const ty = oy + (size - (rowH * 4 + nameH)) / 2 + fs;
+                ctx.font = '700 ' + fs + 'px "Courier Prime", "Noto Sans KR", monospace';
                 for (let r = 0; r < 4; r++) {
                     const w = MOVES[r * 2], b = MOVES[r * 2 + 1];
                     const parts = [];
@@ -888,6 +957,18 @@
                         ctx.fillText(pt.s, x, ty + r * rowH);
                         x += ctx.measureText(pt.s).width + fs * 0.9;
                     });
+                }
+                if (done) {
+                    const ny = ty + rowH * 4 + fs * 0.2;
+                    ctx.font = '400 ' + (fs - 1) + 'px "Courier Prime", "Noto Sans KR", monospace';
+                    ctx.fillStyle = C.ter;
+                    ctx.fillText('B27', tx, ny);
+                    ctx.fillStyle = C.sec;
+                    ctx.fillText('Sicilian Defense', tx, ny + fs * 1.55);
+                    ctx.font = '700 ' + (fs - 1) + 'px "Courier Prime", "Noto Sans KR", monospace';
+                    ctx.fillStyle = accent;
+                    ctx.fillText('Hyperaccelerated', tx, ny + fs * 3.1);
+                    ctx.fillText('Dragon', tx, ny + fs * 4.65);
                 }
             },
         };
