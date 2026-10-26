@@ -959,75 +959,139 @@
         };
     }
 
-    /* ---------- 베이스: 줄이 울리는 모습 ---------- */
+    /* ---------- 베이스: 이펙터가 파형을 바꾸는 모습 ---------- */
 
     function animBass(stage, C, accent) {
         const cv = mkCanvas(stage);
-        const NAMES = ['G', 'D', 'A', 'E'];
-        const FREQ = [11.8, 8.8, 6.6, 4.9];
-        const WIDTH = [1.6, 2.1, 2.7, 3.4];
-        const RIFF = [3, 3, 1, 3, 2, 2, 0, 1];
-        const STEP = 0.42;
-        const amp = [0, 0, 0, 0];
-        const phase = [0, 0, 0, 0];
-        let time = 0, lastStep = -1;
+            const SANS = '"Noto Sans KR", -apple-system, "Segoe UI", sans-serif';
+            const MONO = '"Courier Prime", "Noto Sans KR", monospace';
+            const clampv = (x, a, b) => Math.max(a, Math.min(b, x));
+            const lerp = (a, b, k) => a + (b - a) * k;
+            const easeIO = (x) => {
+                x = clampv(x, 0, 1);
+                return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+            };
+            const tanhN = (x, g) => Math.tanh(g * x) / Math.tanh(g);
+            // 베이스 소리 모양: 기본음 + 배음
+            const bassWave = (p) => 0.75 * Math.sin(p) + 0.3 * Math.sin(2 * p + 0.5) + 0.12 * Math.sin(3 * p + 1.1);
+            function ln(ctx, pts, color, w) {
+                ctx.beginPath();
+                ctx.moveTo(pts[0][0], pts[0][1]);
+                for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = w;
+                ctx.stroke();
+            }
+            function dotAt(ctx, x, y, r, color) {
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+            function txt(ctx, s, x, y, color, font, align) {
+                ctx.font = font;
+                ctx.fillStyle = color;
+                ctx.textAlign = align || 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(s, x, y);
+            }
+        const FX = [
+            { name: 'CLEAN', sub: '원음', f: (p) => bassWave(p), knob: 0.1 },
+            { name: 'OVERDRIVE', sub: '부드럽게 깎이는 파형', f: (p) => tanhN(bassWave(p), 3.4), knob: 0.55 },
+            { name: 'FUZZ', sub: '거의 네모파', f: (p) => clampv(bassWave(p) * 9, -0.6, 0.6) / 0.6, knob: 0.95 },
+            { name: 'TREMOLO', sub: '볼륨이 출렁임', f: (p, u) => bassWave(p) * (0.5 + 0.5 * Math.cos(2 * Math.PI * u * 1.5 + 0.4)), knob: 0.4 },
+            { name: 'OCTAVE', sub: '한 옥타브 위', f: (p) => bassWave(2 * p), knob: 0.7 },
+        ];
+        let t = 0, idx = 0, prev = 0, k = 1, timer = 0, knob = FX[0].knob;
 
         return {
-            preview: 8,
+            preview: 30,
             resize: cv.resize,
             update(dt) {
-                time += dt;
-                const step = Math.floor(time / STEP);
-                if (step !== lastStep) {
-                    lastStep = step;
-                    const s = RIFF[step % RIFF.length];
-                    amp[s] = 1;
-                    phase[s] = 0;
+                t += dt;
+                timer += dt;
+                if (timer > 2.7) {
+                    timer = 0;
+                    prev = idx;
+                    idx = (idx + 1) % FX.length;
+                    k = 0;
                 }
-                for (let i = 0; i < 4; i++) {
-                    phase[i] += dt * FREQ[i] * Math.PI * 2;
-                    amp[i] *= Math.exp(-dt * 1.7);
-                }
+                k = Math.min(1, k + dt / 0.8);
+                knob += (FX[idx].knob - knob) * Math.min(1, dt * 4);
             },
             render() {
                 if (!cv.W) return;
                 const ctx = cv.ctx;
                 cv.clear();
-                const x0 = 0.1 * cv.W, x1 = 0.94 * cv.W;
-                const maxA = cv.H * 0.09;
+                const W = cv.W, H = cv.H;
+                const fs = Math.round(clampv(H * 0.036, 9, 13));
                 ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
 
-                // 너트 / 브릿지
+                // 스코프
+                const sx = 0.06 * W, sw = 0.88 * W, sy = 0.07 * H, sh = 0.46 * H;
+                ctx.fillStyle = C.bg3;
                 ctx.strokeStyle = C.border;
-                ctx.lineWidth = 4;
+                ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.moveTo(x0, cv.H * 0.12);
-                ctx.lineTo(x0, cv.H * 0.88);
-                ctx.moveTo(x1, cv.H * 0.12);
-                ctx.lineTo(x1, cv.H * 0.88);
+                ctx.roundRect(sx, sy, sw, sh, 8);
+                ctx.fill();
                 ctx.stroke();
+                for (let g = 1; g < 8; g++) ln(ctx, [[sx + (sw * g) / 8, sy], [sx + (sw * g) / 8, sy + sh]], C.border, 0.6);
+                for (let g = 1; g < 4; g++) ln(ctx, [[sx, sy + (sh * g) / 4], [sx + sw, sy + (sh * g) / 4]], g === 2 ? C.ter : C.border, g === 2 ? 1 : 0.6);
 
-                ctx.font = '700 12px "Courier Prime", "Noto Sans KR", monospace';
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'middle';
-                for (let i = 0; i < 4; i++) {
-                    const y = cv.H * (0.22 + i * 0.185);
-                    ctx.fillStyle = amp[i] > 0.15 ? accent : C.ter;
-                    ctx.fillText(NAMES[i], cv.W * 0.03, y);
-
-                    ctx.lineWidth = WIDTH[i];
-                    ctx.strokeStyle = amp[i] > 0.05 ? accent : C.sec;
-                    ctx.beginPath();
-                    const N = 64;
-                    for (let k = 0; k <= N; k++) {
-                        const u = k / N;
-                        const yy = y + Math.sin(Math.PI * u) * Math.cos(phase[i]) * amp[i] * maxA;
-                        const xx = x0 + (x1 - x0) * u;
-                        if (k) ctx.lineTo(xx, yy);
-                        else ctx.moveTo(xx, yy);
-                    }
-                    ctx.stroke();
+                const N = 180, mid = sy + sh / 2, amp = sh * 0.38;
+                const ease = easeIO(k);
+                const ptsClean = [], ptsOut = [];
+                for (let i = 0; i <= N; i++) {
+                    const u = i / N;
+                    const p = 2 * Math.PI * (u * 3 - t * 0.7);
+                    const clean = bassWave(p);
+                    const out = lerp(FX[prev].f(p, u), FX[idx].f(p, u), ease);
+                    ptsClean.push([sx + sw * u, mid - clean * amp * 0.9]);
+                    ptsOut.push([sx + sw * u, mid - clampv(out, -1.2, 1.2) * amp * 0.9]);
                 }
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(sx + 1, sy + 1, sw - 2, sh - 2);
+                ctx.clip();
+                ctx.setLineDash([5, 6]);
+                ln(ctx, ptsClean, C.ter, 1.6);
+                ctx.setLineDash([]);
+                ln(ctx, ptsOut, accent, 3.2);
+                ctx.restore();
+
+                // 범례
+                ln(ctx, [[sx + 12, sy + sh + 12], [sx + 34, sy + sh + 12]], C.ter, 2);
+                txt(ctx, '원음', sx + 40, sy + sh + 12, C.ter, '400 ' + fs + 'px ' + SANS);
+                ln(ctx, [[sx + 90, sy + sh + 12], [sx + 112, sy + sh + 12]], accent, 3);
+                txt(ctx, '이펙터 출력', sx + 118, sy + sh + 12, C.sec, '400 ' + fs + 'px ' + SANS);
+
+                // 페달
+                const pw = Math.min(0.34 * W, 210), ph = 0.25 * H, px = W / 2 - pw / 2, py = 0.67 * H;
+                ln(ctx, [[sx, py + ph / 2], [px, py + ph / 2]], C.ter, 3);
+                ln(ctx, [[px + pw, py + ph / 2], [sx + sw, py + ph / 2]], C.ter, 3);
+                txt(ctx, 'IN', sx + 4, py + ph / 2 - 11, C.ter, '700 ' + fs + 'px ' + MONO);
+                txt(ctx, 'OUT', sx + sw - 4, py + ph / 2 - 11, C.ter, '700 ' + fs + 'px ' + MONO, 'right');
+                ctx.fillStyle = '#26262c';
+                ctx.strokeStyle = C.ter;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(px, py, pw, ph, 9);
+                ctx.fill();
+                ctx.stroke();
+                dotAt(ctx, px + pw / 2, py + ph * 0.2, 4, accent);
+                [0.28, 0.72].forEach((kx, i) => {
+                    const cx = px + pw * kx, cy = py + ph * 0.45, r = ph * 0.17;
+                    dotAt(ctx, cx, cy, r, '#111114');
+                    ctx.strokeStyle = C.sec;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    const a = (-150 + (i ? 0.6 : knob) * 300) * (Math.PI / 180) - Math.PI / 2;
+                    ln(ctx, [[cx, cy], [cx + Math.cos(a) * r * 0.85, cy + Math.sin(a) * r * 0.85]], accent, 2);
+                });
+                txt(ctx, FX[idx].name, W / 2, py + ph * 0.83, C.text, '700 ' + Math.max(10, fs) + 'px ' + MONO, 'center');
+                txt(ctx, FX[idx].sub, W / 2, py + ph + 11, C.ter, '400 ' + fs + 'px ' + SANS, 'center');
             },
         };
     }
