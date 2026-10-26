@@ -485,7 +485,7 @@
                 for (let y = 0; y < ROWS; y++)
                     for (let x = 0; x < COLS; x++) {
                         box(x, y);
-                        ctx.fillStyle = walls.has(key(x, y)) ? '#4a4a52' : C.bg3;
+                        ctx.fillStyle = walls.has(key(x, y)) ? '#8a8a96' : C.bg3;
                         ctx.fill();
                     }
                 const n = Math.floor(revealed);
