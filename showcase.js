@@ -170,144 +170,197 @@
         };
     }
 
-    /* ---------- 전자공학: PCB 트레이스 위를 달리는 신호 ---------- */
+    /* ---------- 전자공학: RLC 직렬 회로의 감쇠 진동 ---------- */
 
     function animCircuit(stage, C, accent) {
         const cv = mkCanvas(stage);
-        const paths = [
-            [[0.05, 0.5], [0.28, 0.5], [0.28, 0.2], [0.58, 0.2], [0.58, 0.5], [0.9, 0.5]],
-            [[0.28, 0.5], [0.28, 0.82], [0.72, 0.82], [0.72, 0.5]],
-            [[0.58, 0.5], [0.58, 0.82]],
-            [[0.28, 0.43], [0.38, 0.43]],
-            [[0.28, 0.57], [0.38, 0.57]],
-            [[0.5, 0.43], [0.58, 0.43]],
-            [[0.5, 0.57], [0.58, 0.57]],
-        ];
-        const nodes = [[0.05, 0.5], [0.28, 0.5], [0.58, 0.5], [0.72, 0.5], [0.58, 0.82], [0.28, 0.82]];
-        const pulses = [
-            { path: 0, d: 0, speed: 150 },
-            { path: 0, d: -260, speed: 150 },
-            { path: 1, d: -80, speed: 130 },
-        ];
-        let led = 0;
+        const T = 11, HOLD = 1.6, W0 = (2 * Math.PI) / 2.4, AL = 0.36, N = 44;
+        const MATH = '"STIX Two Text", "Cambria Math", "Times New Roman", Georgia, serif';
+        let t = 0, S = 0;
+        // i(t): 전류, q(t): 커패시터 전압(전하)에 비례. 둘 다 e^(-αt) 로 잦아든다.
+        const I = (x) => Math.exp(-AL * x) * Math.sin(W0 * x);
+        const Q = (x) => Math.exp(-AL * x) * (Math.cos(W0 * x) + (AL / W0) * Math.sin(W0 * x));
 
-        function scaled(p) {
-            return p.map((pt) => [pt[0] * cv.W, pt[1] * cv.H]);
+        const lerp = (a, b, k) => a + (b - a) * k;
+        function line(ctx, pts, color, w) {
+            ctx.beginPath();
+            ctx.moveTo(pts[0][0], pts[0][1]);
+            for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = w;
+            ctx.stroke();
         }
-        function length(pts) {
-            let L = 0;
-            for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
-            return L;
+        function dotAt(ctx, x, y, r, color) {
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
         }
-        function pointAt(pts, d) {
-            for (let i = 1; i < pts.length; i++) {
-                const seg = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
-                if (d <= seg) {
-                    const k = seg ? d / seg : 0;
-                    return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * k, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * k];
-                }
-                d -= seg;
-            }
-            return pts[pts.length - 1];
+        // 수식 글자: 이탤릭 세리프, 아래첨자는 작게 내려서 그린다. parts = [{ s, it, sub, color }]
+        function mathFont(p, size) {
+            return (p.it ? 'italic ' : '') + '400 ' + (p.sub ? size * 0.7 : size) + 'px ' + MATH;
+        }
+        function mathW(ctx, parts, size) {
+            let w = 0;
+            parts.forEach((p) => {
+                ctx.font = mathFont(p, size);
+                w += ctx.measureText(p.s).width;
+            });
+            return w;
+        }
+        function math(ctx, parts, x, base, size, align) {
+            const total = mathW(ctx, parts, size);
+            let cx = align === 'right' ? x - total : align === 'center' ? x - total / 2 : x;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+            parts.forEach((p) => {
+                ctx.font = mathFont(p, size);
+                ctx.fillStyle = p.color;
+                ctx.fillText(p.s, cx, base + (p.sub ? size * 0.28 : 0));
+                cx += ctx.measureText(p.s).width;
+            });
+        }
+
+        function layout() {
+            const W = cv.W, H = cv.H;
+            return { W, H, x0: W * 0.1, x1: W * 0.46, y0: H * 0.24, y1: H * 0.78, gx: W * 0.56, gw: W * 0.4, gy: H * 0.2, gh: H * 0.6 };
+        }
+        // 회로 한 바퀴를 u(0~1)로 매겨 위치를 구한다. 왼쪽 위에서 시계 방향.
+        function loopPt(L, u) {
+            const w = L.x1 - L.x0, h = L.y1 - L.y0;
+            let d = (((u % 1) + 1) % 1) * 2 * (w + h);
+            if (d < w) return [L.x0 + d, L.y0];
+            d -= w;
+            if (d < h) return [L.x1, L.y0 + d];
+            d -= h;
+            if (d < w) return [L.x1 - d, L.y1];
+            d -= w;
+            return [L.x0, L.y1 - d];
         }
 
         return {
-            preview: 24,
+            preview: 120,
             resize: cv.resize,
             update(dt) {
-                if (!cv.W) return;
-                led = Math.max(0, led - dt * 2.2);
-                pulses.forEach((p) => {
-                    const total = length(scaled(paths[p.path]));
-                    const before = p.d;
-                    p.d += dt * p.speed;
-                    if (p.path === 0 && before < total && p.d >= total) led = 1;
-                    if (p.d > total + 120) p.d = -60;
-                });
+                t += dt;
+                if (t < T) S += dt * I(t) * 1.1;
+                if (t >= T + HOLD) {
+                    t = 0;
+                    S = 0;
+                }
             },
             render() {
                 if (!cv.W) return;
                 const ctx = cv.ctx;
                 cv.clear();
+                const L = layout();
+                const ms = Math.round(Math.max(12, Math.min(L.H * 0.05, 17)));
+                const w = L.x1 - L.x0, h = L.y1 - L.y0, midY = (L.y0 + L.y1) / 2;
+                const gap = h * 0.07, pw = w * 0.09;
+                const ix0 = L.x0 + w * 0.3, ix1 = L.x0 + w * 0.7;
+                const ry0 = L.y0 + h * 0.28, ry1 = L.y0 + h * 0.72;
+                const tt = Math.min(t, T);
+                const i = I(tt), q = Q(tt);
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
 
-                // 트레이스
-                ctx.strokeStyle = C.border;
-                ctx.lineWidth = 3;
-                paths.forEach((p) => {
-                    const pts = scaled(p);
-                    ctx.beginPath();
-                    ctx.moveTo(pts[0][0], pts[0][1]);
-                    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-                    ctx.stroke();
-                });
+                // 인덕터 주변 자기장, 저항 발열을 은은한 빛으로
+                const glow = (x, y, r, a) => {
+                    const gr = ctx.createRadialGradient(x, y, 0, x, y, r);
+                    gr.addColorStop(0, accent);
+                    gr.addColorStop(1, 'rgba(0,0,0,0)');
+                    withAlpha(ctx, a, () => {
+                        ctx.fillStyle = gr;
+                        ctx.beginPath();
+                        ctx.arc(x, y, r, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                };
+                glow((ix0 + ix1) / 2, L.y0, w * 0.24, Math.abs(i) * 0.5);
+                glow(L.x1, midY, w * 0.16, i * i * 0.45);
 
-                // IC
-                const x0 = 0.38 * cv.W, y0 = 0.36 * cv.H, w = 0.12 * cv.W, h = 0.28 * cv.H;
-                ctx.fillStyle = '#34343b';
-                ctx.beginPath();
-                ctx.roundRect(x0, y0, w, h, 4);
-                ctx.fill();
-                ctx.strokeStyle = C.ter;
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-                ctx.fillStyle = C.sec;
-                ctx.beginPath();
-                ctx.arc(x0 + 8, y0 + 8, 2.5, 0, Math.PI * 2);
-                ctx.fill();
+                // 전선
+                [
+                    [[L.x0, L.y1], [L.x1, L.y1], [L.x1, ry1]],
+                    [[L.x1, ry0], [L.x1, L.y0], [ix1, L.y0]],
+                    [[ix0, L.y0], [L.x0, L.y0], [L.x0, midY - gap / 2]],
+                    [[L.x0, midY + gap / 2], [L.x0, L.y1]],
+                ].forEach((p) => line(ctx, p, C.ter, 2.5));
 
-                // 패드
-                nodes.forEach((n) => {
-                    ctx.beginPath();
-                    ctx.arc(n[0] * cv.W, n[1] * cv.H, 4, 0, Math.PI * 2);
-                    ctx.fillStyle = C.bg2;
-                    ctx.fill();
-                    ctx.strokeStyle = C.sec;
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                });
+                // 저항
+                const amp = w * 0.035, segs = 7, rz = [];
+                for (let s = 0; s <= segs; s++) rz.push([L.x1 + (s === 0 || s === segs ? 0 : s % 2 ? -amp : amp), lerp(ry0, ry1, s / segs)]);
+                line(ctx, rz, C.sec, 2.5);
 
-                // LED
-                const lx = 0.9 * cv.W, ly = 0.5 * cv.H;
-                const g = ctx.createRadialGradient(lx, ly, 0, lx, ly, 34);
-                g.addColorStop(0, accent);
-                g.addColorStop(1, 'rgba(255,255,255,0)');
-                withAlpha(ctx, led * 0.55, () => {
-                    ctx.fillStyle = g;
-                    ctx.beginPath();
-                    ctx.arc(lx, ly, 34, 0, Math.PI * 2);
-                    ctx.fill();
-                });
+                // 인덕터
+                const cw = (ix1 - ix0) / 4;
                 ctx.beginPath();
-                ctx.arc(lx, ly, 8, 0, Math.PI * 2);
-                ctx.fillStyle = C.bg2;
-                ctx.fill();
+                ctx.moveTo(ix0, L.y0);
+                for (let k = 0; k < 4; k++) ctx.arc(ix0 + (k + 0.5) * cw, L.y0, cw / 2, Math.PI, 2 * Math.PI);
+                ctx.strokeStyle = C.sec;
                 ctx.lineWidth = 2.5;
-                ctx.strokeStyle = led > 0.05 ? accent : C.sec;
                 ctx.stroke();
-                withAlpha(ctx, led, () => {
-                    ctx.beginPath();
-                    ctx.arc(lx, ly, 5, 0, Math.PI * 2);
-                    ctx.fillStyle = accent;
-                    ctx.fill();
+
+                // 커패시터: 전하가 쌓인 쪽 판이 밝아진다
+                const yTop = midY - gap / 2, yBot = midY + gap / 2, aq = Math.abs(q);
+                line(ctx, [[L.x0 - pw, yTop], [L.x0 + pw, yTop]], C.sec, 3.5);
+                line(ctx, [[L.x0 - pw, yBot], [L.x0 + pw, yBot]], C.sec, 3.5);
+                const posY = q >= 0 ? yTop : yBot, negY = q >= 0 ? yBot : yTop;
+                withAlpha(ctx, aq, () => {
+                    line(ctx, [[L.x0 - pw, posY], [L.x0 + pw, posY]], accent, 5);
+                    line(ctx, [[L.x0 - pw, negY], [L.x0 + pw, negY]], C.text, 5);
+                    for (const dx of [-pw / 2, 0, pw / 2]) line(ctx, [[L.x0 + dx, yTop + 3], [L.x0 + dx, yBot - 3]], C.ter, 1.2);
+                    math(ctx, [{ s: '+', color: accent }], L.x0 - pw - 6, posY + ms * 0.32, ms + 2, 'right');
+                    math(ctx, [{ s: '−', color: C.text }], L.x0 - pw - 6, negY + ms * 0.32, ms + 2, 'right');
                 });
 
-                // 신호 펄스
-                pulses.forEach((p) => {
-                    const pts = scaled(paths[p.path]);
-                    for (let k = 0; k < 16; k++) {
-                        const d = p.d - k * 5;
-                        if (d < 0) continue;
-                        const pt = pointAt(pts, d);
-                        withAlpha(ctx, 1 - k / 16, () => {
-                            ctx.beginPath();
-                            ctx.arc(pt[0], pt[1], 3.4 - k * 0.13, 0, Math.PI * 2);
-                            ctx.fillStyle = accent;
-                            ctx.fill();
-                        });
-                    }
-                });
+                // 전류 입자 (부품 구간은 건너뛴다)
+                for (let k = 0; k < N; k++) {
+                    const [px, py] = loopPt(L, k / N + S);
+                    if (py === L.y0 && px > ix0 && px < ix1) continue;
+                    if (px === L.x1 && py > ry0 && py < ry1) continue;
+                    if (px === L.x0 && Math.abs(py - midY) < gap / 2 + 4) continue;
+                    withAlpha(ctx, 0.3 + 0.7 * Math.min(1, Math.abs(i) * 1.4), () => dotAt(ctx, px, py, 2.6, accent));
+                }
+
+                // 부품 이름
+                math(ctx, [{ s: 'L', it: true, color: C.ter }], (ix0 + ix1) / 2, L.y0 - cw * 0.5 - 6, ms, 'center');
+                math(ctx, [{ s: 'R', it: true, color: C.ter }], L.x1 + amp + 10, midY + ms * 0.32, ms, 'left');
+                math(ctx, [{ s: 'C', it: true, color: C.ter }], L.x0 + pw + 10, midY + ms * 0.32, ms, 'left');
+
+                // 그래프
+                const my = L.gy + L.gh / 2, A = L.gh * 0.42;
+                line(ctx, [[L.gx, my], [L.gx + L.gw, my]], C.border, 1.5);
+                line(ctx, [[L.gx, L.gy], [L.gx, L.gy + L.gh]], C.border, 1.5);
+                ctx.setLineDash([4, 4]);
+                for (const sg of [1, -1]) {
+                    const env = [];
+                    for (let x = 0; x <= T; x += 0.25) env.push([L.gx + (x / T) * L.gw, my - sg * A * Math.exp(-AL * x)]);
+                    withAlpha(ctx, 0.5, () => line(ctx, env, C.ter, 1));
+                }
+                ctx.setLineDash([]);
+                const curve = (fn, color, lw) => {
+                    const pts = [];
+                    for (let x = 0; x < tt; x += 0.04) pts.push([L.gx + (x / T) * L.gw, my - fn(x) * A]);
+                    pts.push([L.gx + (tt / T) * L.gw, my - fn(tt) * A]);
+                    if (pts.length > 1) line(ctx, pts, color, lw);
+                    dotAt(ctx, pts[pts.length - 1][0], pts[pts.length - 1][1], 3.5, color);
+                };
+                curve(Q, C.sec, 2);
+                curve(I, accent, 2.5);
+
+                // 범례: 선 색 견본 + 수식 글자
+                const ls = ms + 3, ly = L.gy - 8;
+                const iParts = [{ s: 'i', it: true, color: accent }, { s: '(', color: accent }, { s: 't', it: true, color: accent }, { s: ')', color: accent }];
+                const vParts = [{ s: 'v', it: true, color: C.text }, { s: 'C', it: true, sub: true, color: C.text }, { s: '(', color: C.text }, { s: 't', it: true, color: C.text }, { s: ')', color: C.text }];
+                const right = L.gx + L.gw;
+                const iw = mathW(ctx, iParts, ls), vw = mathW(ctx, vParts, ls);
+                const ix = right - iw, vx = ix - 18 - 22 - vw;
+                line(ctx, [[ix - 20, ly - ls * 0.3], [ix - 6, ly - ls * 0.3]], accent, 2.5);
+                math(ctx, iParts, ix, ly, ls, 'left');
+                line(ctx, [[vx - 20, ly - ls * 0.3], [vx - 6, ly - ls * 0.3]], C.sec, 2);
+                math(ctx, vParts, vx, ly, ls, 'left');
+                math(ctx, [{ s: 't', it: true, color: C.ter }], right, my + ms + 6, ms + 1, 'right');
             },
         };
     }
