@@ -39,6 +39,7 @@ summary: 목록에 보일 한두 줄 요약
 - 유튜브 영상은 **한 줄에 주소만 단독으로** 쓰면 플레이어(youtube-nocookie)로 바뀌고 아래에 "YouTube에서 보기" 링크가 붙어요. 지원 형식은 `https://www.youtube.com/watch?v=ID`, `https://youtu.be/ID`, `https://www.youtube.com/shorts/ID`이고, 시작 시간은 주소 뒤에 `?t=90`, `&t=1m30s`, `&start=90`처럼 붙여요. `[글자](주소)` 링크 문법, 문장 중간의 주소, 목록/인용 안의 주소, 코드 블록과 인라인 코드 안의 주소는 플레이어가 되지 않고 그대로 남아요. 이 기능의 코드는 `blog.js`와 `scripts/build-posts.mjs`에 같은 블록(`youtube-embed:start` ~ `end`)으로 들어 있으니 한쪽만 고치지 마세요.
 - 수식은 LaTeX로 써요: 인라인 `$O(n)$`, 별도 줄 `$$ ... $$` (KaTeX). 달러 기호 자체는 `\$`로 써요. 코드 블록 안은 그대로 보여요.
 - `draft: true`를 넣으면 목록에서 빠져요.
+- `unlisted: true`를 넣으면 **링크로만 열리는 글**이 돼요. 블로그 목록, 폴더 글 수, 태그, 이전/다음 글, 검색, `sitemap.xml`에는 나오지 않고 `posts.json`, `search.json`에도 들어가지 않아요. 글 주소(`#blog/post/폴더/글`, `/p/폴더/글/`)로 직접 열면 보이고, 글 페이지(`p/...`)에는 `noindex, nofollow`가 들어가서 구글 검색에 안 나와요. 주소를 아는 사람은 열 수 있으니 비밀 글 용도로는 쓰지 마세요. 링크 전용 글의 경로(폴더, 파일 이름)는 그대로 주소가 되니 폴더/파일 이름을 추측하기 어렵게 지으면 더 좋아요.
 - `posts/_test/` 안의 글은 기능 확인용 샘플이라 사이트에 나오지 않아요. 로컬에서 보려면 `node scripts/build-posts.mjs --with-test`로 빌드하고, 그 결과(`posts.json`, `search.json`)는 커밋하지 마세요.
 - `main`에 푸시하면 GitHub Actions(`.github/workflows/build-posts.yml`)가 `posts.json`을 갱신해요. 직접 갱신하려면 `node scripts/build-posts.mjs`를 실행하세요.
 

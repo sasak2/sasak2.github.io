@@ -180,7 +180,7 @@ function openBlog(folder) {
             }
         };
         const parts = path ? path.split('/') : [];
-        add('블로그', parts.length || lastLabel ? '#blog' : null);
+        add('블로그', parts.length || lastLabel || linkLast ? '#blog' : null);
         parts.forEach((_, i) => {
             const sub = parts.slice(0, i + 1).join('/');
             const last = i === parts.length - 1 && !lastLabel && !linkLast;
@@ -488,12 +488,35 @@ function openBlog(folder) {
         box.appendChild(nav);
     }
 
+    // 링크 전용(unlisted: true) 글: posts.json 에는 없지만 주소를 직접 열면 글 파일을 읽어서 보여준다.
+    // 목록, 검색, 이전/다음 글에는 나오지 않는다. 초안(draft)이나 unlisted 가 아닌 글은 여기서 열리지 않는다.
+    async function loadUnlisted(slug) {
+        if (!/^[\p{L}\p{N}._-]+(\/[\p{L}\p{N}._-]+)*$/u.test(slug) || slug.split('/').some((s) => s.startsWith('_') || s.startsWith('.'))) return null;
+        try {
+            const res = await fetch('posts/' + slug.split('/').map(encodeURIComponent).join('/') + '.md', { cache: 'no-cache' });
+            if (!res.ok) return null;
+            const fm = /^---\r?\n([\s\S]*?)\r?\n---/.exec((await res.text()).replace(/^﻿/, ''));
+            if (!fm) return null;
+            const meta = {};
+            fm[1].split(/\r?\n/).forEach((line) => {
+                const kv = line.match(/^([A-Za-z_]+)\s*:\s*(.*)$/);
+                if (kv) meta[kv[1]] = kv[2].trim().replace(/^["']|["']$/g, '');
+            });
+            if (meta.unlisted !== 'true' || meta.draft === 'true' || !meta.title || !/^\d{4}-\d{2}-\d{2}$/.test(meta.date || '')) return null;
+            const post = { slug, folder: '', title: meta.title, date: meta.date, tags: [], summary: '', unlisted: true };
+            if (/^\d{4}-\d{2}-\d{2}$/.test(meta.updated || '') && meta.updated > meta.date) post.updated = meta.updated;
+            return post;
+        } catch (e) {
+            return null;
+        }
+    }
+
     async function renderPost(box, data, post, anchor) {
         currentSlug = post.slug;
         pendingAnchor = anchor || null;
         box.replaceChildren();
         const crumb = el('nav', 'blog-crumb post-crumb');
-        renderCrumb(crumb, data, post.folder, null, true);
+        renderCrumb(crumb, data, post.unlisted ? '' : post.folder, null, true);
         box.appendChild(crumb);
         box.appendChild(el('div', 'blog-date', dateLabel(post)));
         box.appendChild(el('h3', 'post-title', post.title));
@@ -527,7 +550,7 @@ function openBlog(folder) {
             body.textContent = '글을 불러오지 못했어요.';
             return;
         }
-        renderPostNav(box, data, post);
+        if (!post.unlisted) renderPostNav(box, data, post);
     }
 
     let seq = 0;
@@ -561,7 +584,8 @@ function openBlog(folder) {
         const rest = (qAt >= 0 ? rawRest.slice(0, qAt) : rawRest).split('/').map(safe).filter(Boolean).join('/');
 
         if (kind === 'post') {
-            const found = data.posts.find((p) => p.slug === rest);
+            const found = data.posts.find((p) => p.slug === rest) || (await loadUnlisted(rest));
+            if (mine !== seq) return;
             browse.hidden = true;
             crumb.hidden = true;
             post.hidden = false;
