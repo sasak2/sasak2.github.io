@@ -157,6 +157,19 @@ writeFileSync(join(root, 'posts.json'), JSON.stringify({ folders, posts }, null,
 writeFileSync(join(root, 'search.json'), JSON.stringify(searchIndex) + '\n');
 console.log(`posts.json 생성: 글 ${posts.length}개, 폴더 ${folders.length}개`);
 
+// ---- sitemap.xml ----
+// 이 사이트는 #해시 주소로 글을 보여주는데, 구글은 # 뒤의 주소를 별도 페이지로 보지 않는다.
+// 그래서 실제로 색인될 수 있는 주소(루트)만 넣는다. 글별 실제 주소가 생기면 여기서 같이 내보내면 된다.
+const siteUrl = 'https://sasak2.github.io/';
+const lastmod = posts.reduce((acc, p) => {
+    const d = p.updated && p.updated > p.date ? p.updated : p.date;
+    return d > acc ? d : acc;
+}, '');
+writeFileSync(
+    join(root, 'sitemap.xml'),
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url>\n    <loc>${siteUrl}</loc>\n${lastmod ? `    <lastmod>${lastmod}</lastmod>\n` : ''}  </url>\n</urlset>\n`
+);
+
 // ---- 캐시 무효화: 정적 파일이 바뀌면 index.html 의 ?v= 값도 바뀐다 ----
 const assetFiles = ['styles.css', 'script.js', 'showcase.js', 'blog.js'];
 const sectionFiles = readdirSync(join(root, 'sections'))
