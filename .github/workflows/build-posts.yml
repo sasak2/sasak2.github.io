@@ -6,6 +6,8 @@ on:
     paths:
       - 'posts/**'
       - 'scripts/build-posts.mjs'
+      - 'package.json'
+      - 'package-lock.json'
       - 'styles.css'
       - 'script.js'
       - 'showcase.js'
@@ -25,6 +27,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
+      - name: Install build dependencies (marked, katex, highlight.js)
+        run: npm ci
       - name: Generate posts.json, search.json, sitemap.xml, post pages and asset version
         run: node scripts/build-posts.mjs
       - name: Commit generated files if changed

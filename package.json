@@ -1,0 +1,11 @@
+{
+  "name": "sasak2-github-io",
+  "private": true,
+  "description": "빌드 스크립트(scripts/build-posts.mjs)가 글 페이지를 만들 때만 쓰는 패키지. 사이트 자체는 빌드 없이 정적 파일로 배포된다.",
+  "type": "module",
+  "dependencies": {
+    "highlight.js": "11.9.0",
+    "katex": "0.16.11",
+    "marked": "12.0.2"
+  }
+}

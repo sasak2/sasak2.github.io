@@ -1,7 +1,7 @@
 // 1) posts/ 아래 폴더와 *.md 의 front matter를 읽어서 posts.json 을 생성한다.
 // 2) styles.css, *.js, sections/*.html 의 해시를 index.html 의 ?v= 에 넣어 브라우저 캐시를 갱신한다.
 // 사용법: node scripts/build-posts.mjs
-// 의존성 없음 (Node 18+).
+// Node 18+. 글 페이지를 전체 렌더링하려면 npm ci 로 marked, katex, highlight.js 를 설치한다 (없어도 동작).
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -162,7 +162,8 @@ console.log(`posts.json 생성: 글 ${posts.length}개, 폴더 ${folders.length}
 // ---- 글별 검색용 페이지 (p/<slug>/index.html) 와 sitemap.xml ----
 // 이 사이트는 #해시 주소로 글을 보여주는데, 구글은 # 뒤의 주소를 별도 페이지로 보지 않는다.
 // 그래서 글마다 실제 주소를 가진 가벼운 정적 페이지를 만들어 색인되게 한다.
-// 이 페이지는 제목, 설명, 본문 텍스트를 담고, 꾸며진 화면(블로그)으로 가는 링크를 둔다.
+// 이 페이지는 블로그 화면과 같은 모양으로 본문(마크다운, 수식, 코드)까지 완성된 채로 만들어진다.
+// 사용법: npm ci 후 node scripts/build-posts.mjs  (패키지가 없으면 제목, 설명, 본문 텍스트만 담은 간단한 페이지가 만들어진다)
 const siteUrl = 'https://sasak2.github.io/';
 const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const encPath = (path) => path.split('/').map(encodeURIComponent).join('/');
@@ -194,12 +195,125 @@ function bodyToHtml(raw) {
     return out.join('\n');
 }
 
+// ---- 글 본문을 빌드 때 완성된 HTML 로 렌더링 (marked + KaTeX + highlight.js) ----
+// 패키지가 설치돼 있지 않으면(npm ci 를 안 한 로컬 실행 등) 아래 간단한 요약 형태로 대신 만든다.
+let renderers = null;
+try {
+    const { marked } = await import('marked');
+    const katex = (await import('katex')).default;
+    const hljs = (await import('highlight.js')).default;
+    renderers = { marked, katex, hljs };
+} catch (e) {
+    console.log('참고: marked/katex/highlight.js 가 없어 글 페이지를 간단한 형태로 만들어요. 전체 렌더링은 npm ci 후 다시 실행하세요.');
+}
+
+const decodeEntities = (t) => t.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+
+// blog.js 의 renderMarkdown / enhanceCode / buildToc 와 같은 방식으로 만든다.
+function renderPostHtml(raw) {
+    const { marked, katex, hljs } = renderers;
+    const md = raw.replace(/^﻿/, '').replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
+
+    // 수식을 먼저 빼 두었다가 변환 후 KaTeX 로 되돌린다 (마크다운 변환기가 수식 기호를 망가뜨리지 않게)
+    const maths = [];
+    const parts = md.split(/(```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]*`)/);
+    for (let i = 0; i < parts.length; i += 2) {
+        parts[i] = parts[i]
+            .replace(/\$\$([\s\S]+?)\$\$/g, (m, tex) => {
+                maths.push({ tex: tex.trim(), display: true, raw: m });
+                return '@@MATH' + (maths.length - 1) + '@@';
+            })
+            .replace(/(^|[^\\$\w])\$(?!\s)([^$\n]+?)(?<!\s)\$(?![\w$])/g, (m, pre, tex) => {
+                maths.push({ tex, display: false, raw: m.slice(pre.length) });
+                return pre + '@@MATH' + (maths.length - 1) + '@@';
+            });
+    }
+    let html = marked.parse(parts.join(''));
+    html = html.replace(/@@MATH(\d+)@@/g, (m, n) => {
+        const item = maths[Number(n)];
+        if (!item) return m;
+        try {
+            return katex.renderToString(item.tex, { displayMode: item.display, throwOnError: false });
+        } catch (e) {
+            return item.raw.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+        }
+    });
+
+    // 코드 블록: 문법 색 + 언어 라벨 (복사 버튼은 스크립트가 없으므로 뺀다)
+    html = html.replace(/<pre><code(?: class="language-([\w+#.-]+)")?>([\s\S]*?)<\/code><\/pre>/g, (m, lang = '', code) => {
+        let inner = code;
+        let cls = lang ? `language-${lang}` : '';
+        if (lang && hljs.getLanguage(lang)) {
+            try {
+                inner = hljs.highlight(decodeEntities(code), { language: lang }).value;
+                cls += ' hljs';
+            } catch (e) { /* 색 강조 없이 */ }
+        }
+        return `<div class="code-block"><div class="code-bar"><span class="code-lang">${lang}</span></div><pre><code${cls ? ` class="${cls}"` : ''}>${inner}</code></pre></div>`;
+    });
+
+    // 제목에 id 와 # 링크를 달고, 제목이 3개 이상이면 목차를 만든다
+    const used = new Set();
+    const items = [];
+    html = html.replace(/<h([23])>([\s\S]*?)<\/h\1>/g, (m, level, inner) => {
+        const text = inner.replace(/<span class="katex-mathml">[\s\S]*?<\/math><\/span>/g, '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+        const base = decodeEntities(text).toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, '').trim().replace(/\s+/g, '-') || 'section';
+        let id = 'sec-' + base;
+        for (let n = 2; used.has(id); n++) id = 'sec-' + base + '-' + n;
+        used.add(id);
+        items.push({ id, text, level: Number(level) });
+        return `<h${level} id="${id}">${inner}<a class="h-anchor" href="#${encodeURIComponent(id)}" title="이 제목의 링크">#</a></h${level}>`;
+    });
+    const toc =
+        items.length >= 3
+            ? `<details class="toc" open><summary class="toc-title">목차</summary><ul class="toc-list">` +
+              items.map((it) => `<li class="toc-l${it.level}"><a class="toc-link" href="#${encodeURIComponent(it.id)}">${it.text}</a></li>`).join('') +
+              `</ul></details>`
+            : '';
+
+    // 글 안의 사진 경로(posts/img/...)는 사이트 루트 기준으로 바꾼다 (글 페이지가 p/폴더/글/ 아래에 있으므로)
+    html = html.replace(/(src|href)="posts\//g, '$1="/posts/');
+    return { html, toc };
+}
+
+const folderTitle = new Map(folders.map((f) => [f.path, f.title]));
+const dateLabel = (post) => {
+    let t = post.date.replace(/-/g, '.');
+    if (post.updated && post.updated > post.date) t += '  ·  최종 수정 ' + post.updated.replace(/-/g, '.');
+    return t;
+};
+
 const pagesDir = join(root, 'p');
 rmSync(pagesDir, { recursive: true, force: true }); // 삭제된 글의 페이지가 남지 않게 매번 새로 만든다
 for (const post of posts) {
     const url = `${siteUrl}p/${encPath(post.slug)}/`;
     const blogUrl = `${siteUrl}#blog/post/${encPath(post.slug)}`;
     const desc = post.summary || plainText(rawBySlug[post.slug]).slice(0, 120);
+    const { html: bodyHtml, toc } = renderers
+        ? renderPostHtml(rawBySlug[post.slug])
+        : { html: bodyToHtml(rawBySlug[post.slug]), toc: '' };
+
+    // 같은 폴더 안의 이전(더 오래된) / 다음(더 최근) 글
+    const sibs = posts
+        .filter((p) => p.folder === post.folder)
+        .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.slug.localeCompare(b.slug)));
+    const idx = sibs.findIndex((p) => p.slug === post.slug);
+    const prev = idx > 0 ? sibs[idx - 1] : null;
+    const next = idx >= 0 && idx < sibs.length - 1 ? sibs[idx + 1] : null;
+    const navItem = (p, label, cls) =>
+        p
+            ? `<a class="post-nav-item ${cls}" href="/p/${encPath(p.slug)}/"><span class="post-nav-label">${label}</span><span class="post-nav-title">${esc(p.title)}</span></a>`
+            : '<span class="post-nav-empty"></span>';
+    const postNav = prev || next ? `<nav class="post-nav">${navItem(prev, '← 이전 글', 'prev')}${navItem(next, '다음 글 →', 'next')}</nav>` : '';
+
+    const folderParts = post.folder ? post.folder.split('/') : [];
+    const crumb = folderParts
+        .map((_, i) => {
+            const path = folderParts.slice(0, i + 1).join('/');
+            return ` / <a href="/#blog/folder/${encPath(path)}">${esc(folderTitle.get(path) || folderParts[i])}</a>`;
+        })
+        .join('');
+
     const page = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -215,31 +329,40 @@ for (const post of posts) {
     <meta property="og:url" content="${url}">
     <meta property="article:published_time" content="${post.date}">
     <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0a0a0b">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Courier+Prime:wght@400;700&family=STIX+Two+Text:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <link rel="stylesheet" href="/styles.css">
     <style>
-        body { margin: 0; background: #0a0a0b; color: #e6e6e6; font: 16px/1.8 'Noto Sans KR', system-ui, sans-serif; }
-        main { max-width: 760px; margin: 0 auto; padding: 48px 20px 80px; }
-        a { color: #8ab4ff; }
-        .meta { opacity: 0.6; font-size: 14px; }
-        .go { display: inline-block; margin: 20px 0 28px; padding: 10px 16px; border: 1px solid #8ab4ff; border-radius: 8px; text-decoration: none; }
+        .static-post { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+        .static-top { font-size: 14px; margin-bottom: 24px; color: var(--color-text-secondary); }
+        .static-top a, .static-foot a { color: inherit; }
+        .static-foot { margin-top: 40px; font-size: 14px; color: var(--color-text-secondary); }
     </style>
 </head>
 <body>
-    <main>
-        <p class="meta"><a href="${siteUrl}">sasak2</a> / 블로그</p>
-        <article>
-            <h1>${esc(post.title)}</h1>
-            <p class="meta">${post.date}${post.tags.length ? ' · ' + post.tags.map(esc).join(', ') : ''}</p>
-            <a class="go" href="${blogUrl}">블로그에서 보기 (수식, 이미지, 코드 포함)</a>
-${bodyToHtml(rawBySlug[post.slug])}
+    <main class="static-post">
+        <nav class="static-top"><a href="/">sasak2</a> / <a href="/#blog">블로그</a>${crumb}</nav>
+        <div class="blog-date">${dateLabel(post)}</div>
+        <h1 class="post-title">${esc(post.title)}</h1>
+${post.tags.length ? `        <div class="tag-row tag-row-sm">${post.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>\n` : ''}${toc}
+        <article class="post-body">
+${bodyHtml}
         </article>
+        ${postNav}
+        <p class="static-foot"><a href="${blogUrl}">블로그 화면에서 보기</a></p>
     </main>
+    <script data-goatcounter="https://sasak2.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
 `;
     mkdirSync(join(pagesDir, post.slug), { recursive: true });
     writeFileSync(join(pagesDir, post.slug, 'index.html'), page);
 }
-console.log(`p/ 글 페이지 생성: ${posts.length}개`);
+console.log(`p/ 글 페이지 생성: ${posts.length}개 (${renderers ? '전체 렌더링' : '간단한 형태'})`);
 
 const day = (post) => (post.updated && post.updated > post.date ? post.updated : post.date);
 const lastmodAll = posts.reduce((acc, post) => (day(post) > acc ? day(post) : acc), '');
