@@ -276,93 +276,6 @@ function renderPostHtml(raw) {
     return { html, toc };
 }
 
-const folderTitle = new Map(folders.map((f) => [f.path, f.title]));
-const dateLabel = (post) => {
-    let t = post.date.replace(/-/g, '.');
-    if (post.updated && post.updated > post.date) t += '  ·  최종 수정 ' + post.updated.replace(/-/g, '.');
-    return t;
-};
-
-const pagesDir = join(root, 'p');
-rmSync(pagesDir, { recursive: true, force: true }); // 삭제된 글의 페이지가 남지 않게 매번 새로 만든다
-for (const post of posts) {
-    const url = `${siteUrl}p/${encPath(post.slug)}/`;
-    const blogUrl = `${siteUrl}#blog/post/${encPath(post.slug)}`;
-    const desc = post.summary || plainText(rawBySlug[post.slug]).slice(0, 120);
-    const { html: bodyHtml, toc } = renderers
-        ? renderPostHtml(rawBySlug[post.slug])
-        : { html: bodyToHtml(rawBySlug[post.slug]), toc: '' };
-
-    // 같은 폴더 안의 이전(더 오래된) / 다음(더 최근) 글
-    const sibs = posts
-        .filter((p) => p.folder === post.folder)
-        .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.slug.localeCompare(b.slug)));
-    const idx = sibs.findIndex((p) => p.slug === post.slug);
-    const prev = idx > 0 ? sibs[idx - 1] : null;
-    const next = idx >= 0 && idx < sibs.length - 1 ? sibs[idx + 1] : null;
-    const navItem = (p, label, cls) =>
-        p
-            ? `<a class="post-nav-item ${cls}" href="/p/${encPath(p.slug)}/"><span class="post-nav-label">${label}</span><span class="post-nav-title">${esc(p.title)}</span></a>`
-            : '<span class="post-nav-empty"></span>';
-    const postNav = prev || next ? `<nav class="post-nav">${navItem(prev, '← 이전 글', 'prev')}${navItem(next, '다음 글 →', 'next')}</nav>` : '';
-
-    const folderParts = post.folder ? post.folder.split('/') : [];
-    const crumb = folderParts
-        .map((_, i) => {
-            const path = folderParts.slice(0, i + 1).join('/');
-            return ` / <a href="/#blog/folder/${encPath(path)}">${esc(folderTitle.get(path) || folderParts[i])}</a>`;
-        })
-        .join('');
-
-    const page = `<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${esc(post.title)} | sasak2</title>
-    <meta name="description" content="${esc(desc)}">
-    <meta name="author" content="김현민">
-    <link rel="canonical" href="${url}">
-    <meta property="og:type" content="article">
-    <meta property="og:title" content="${esc(post.title)}">
-    <meta property="og:description" content="${esc(desc)}">
-    <meta property="og:url" content="${url}">
-    <meta property="article:published_time" content="${post.date}">
-    <meta name="color-scheme" content="dark">
-    <meta name="theme-color" content="#0a0a0b">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Courier+Prime:wght@400;700&family=STIX+Two+Text:ital@0;1&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-    <link rel="stylesheet" href="/styles.css">
-    <style>
-        .static-post { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
-        .static-top { font-size: 14px; margin-bottom: 24px; color: var(--color-text-secondary); }
-        .static-top a, .static-foot a { color: inherit; }
-        .static-foot { margin-top: 40px; font-size: 14px; color: var(--color-text-secondary); }
-    </style>
-</head>
-<body>
-    <main class="static-post">
-        <nav class="static-top"><a href="/">sasak2</a> / <a href="/#blog">블로그</a>${crumb}</nav>
-        <div class="blog-date">${dateLabel(post)}</div>
-        <h1 class="post-title">${esc(post.title)}</h1>
-${post.tags.length ? `        <div class="tag-row tag-row-sm">${post.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>\n` : ''}${toc}
-        <article class="post-body">
-${bodyHtml}
-        </article>
-        ${postNav}
-        <p class="static-foot"><a href="${blogUrl}">블로그 화면에서 보기</a></p>
-    </main>
-    <script data-goatcounter="https://sasak2.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
-</body>
-</html>
-`;
-    mkdirSync(join(pagesDir, post.slug), { recursive: true });
-    writeFileSync(join(pagesDir, post.slug, 'index.html'), page);
-}
-console.log(`p/ 글 페이지 생성: ${posts.length}개 (${renderers ? '전체 렌더링' : '간단한 형태'})`);
 
 const day = (post) => (post.updated && post.updated > post.date ? post.updated : post.date);
 const lastmodAll = posts.reduce((acc, post) => (day(post) > acc ? day(post) : acc), '');
@@ -392,3 +305,88 @@ if (stamped !== html) {
     writeFileSync(indexPath, stamped);
     console.log(`index.html 에셋 버전: ${version}`);
 }
+
+// ---- 글별 주소(p/<폴더>/<글>/) 페이지 ----
+// 사이트 첫 화면(index.html)과 같은 틀 안에 글을 미리 렌더링해 넣는다.
+// 검색엔진은 이 완성된 글을 읽고, 사람이 열면 스크립트가 주소를 #blog/post/... 로 바꾸고 블로그가 그대로 이어받아서
+// 메인 페이지에서 글을 눌러 들어온 것과 똑같은 화면이 된다 (이동, 버튼 없음).
+const folderTitle = new Map(folders.map((f) => [f.path, f.title]));
+const dateLabel = (post) => {
+    let t = post.date.replace(/-/g, '.');
+    if (post.updated && post.updated > post.date) t += '  ·  최종 수정 ' + post.updated.replace(/-/g, '.');
+    return t;
+};
+
+function replaceOnce(text, from, to, what) {
+    if (!text.includes(from)) throw new Error(`index.html 또는 sections/blog.html 에서 ${what} 부분을 찾지 못했어요. 글 페이지 틀 생성 코드를 확인하세요.`);
+    return text.replace(from, () => to);
+}
+
+const shellHtml = readFileSync(join(root, 'index.html'), 'utf8');
+const blogSectionHtml = readFileSync(join(root, 'sections', 'blog.html'), 'utf8');
+const pagesDir = join(root, 'p');
+rmSync(pagesDir, { recursive: true, force: true }); // 삭제된 글의 페이지가 남지 않게 매번 새로 만든다
+for (const post of posts) {
+    const url = `${siteUrl}p/${encPath(post.slug)}/`;
+    const hashUrl = `/#blog/post/${encPath(post.slug)}`;
+    const desc = post.summary || plainText(rawBySlug[post.slug]).slice(0, 120);
+    const { html: bodyHtml, toc } = renderers
+        ? renderPostHtml(rawBySlug[post.slug])
+        : { html: bodyToHtml(rawBySlug[post.slug]), toc: '' };
+
+    // 같은 폴더 안의 이전(더 오래된) / 다음(더 최근) 글
+    const sibs = posts
+        .filter((p) => p.folder === post.folder)
+        .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.slug.localeCompare(b.slug)));
+    const idx = sibs.findIndex((p) => p.slug === post.slug);
+    const prev = idx > 0 ? sibs[idx - 1] : null;
+    const next = idx >= 0 && idx < sibs.length - 1 ? sibs[idx + 1] : null;
+    const navItem = (p, label, cls) =>
+        p
+            ? `<a class="post-nav-item ${cls}" href="#blog/post/${encPath(p.slug)}"><span class="post-nav-label">${label}</span><span class="post-nav-title">${esc(p.title)}</span></a>`
+            : '<span class="post-nav-empty"></span>';
+    const postNav = prev || next ? `<nav class="post-nav">${navItem(prev, '← 이전 글', 'prev')}${navItem(next, '다음 글 →', 'next')}</nav>` : '';
+
+    const folderParts = post.folder ? post.folder.split('/') : [];
+    const crumb =
+        `<a href="#blog">블로그</a>` +
+        folderParts
+            .map((_, i) => {
+                const path = folderParts.slice(0, i + 1).join('/');
+                return ` / <a href="#blog/folder/${encPath(path)}">${esc(folderTitle.get(path) || folderParts[i])}</a>`;
+            })
+            .join('');
+
+    // blog.js 가 만드는 글 화면과 같은 구조
+    const postArticle =
+        `<article id="blog-post" class="post">` +
+        `<nav class="blog-crumb post-crumb">${crumb}</nav>` +
+        `<div class="blog-date">${dateLabel(post)}</div>` +
+        `<h3 class="post-title">${esc(post.title)}</h3>` +
+        (post.tags.length ? `<div class="tag-row tag-row-sm">${post.tags.map((t) => `<a class="tag tag-link" href="#blog/tag/${encodeURIComponent(t)}">${esc(t)}</a>`).join('')}</div>` : '') +
+        toc.replace(/href="#(sec-[^"]+)"/g, (m, id) => `href="#blog/post/${encPath(post.slug)}?h=${id}"`) +
+        `<div class="post-body">\n${bodyHtml}\n</div>` +
+        postNav +
+        `</article>`;
+
+    let blogSection = replaceOnce(blogSectionHtml, '<article id="blog-post" class="post" hidden></article>', postArticle, '글 영역(#blog-post)');
+    blogSection = replaceOnce(blogSection, '<div id="blog-browse" class="blog-browse">', '<div id="blog-browse" class="blog-browse" hidden style="display:none">', '글 목록 영역(#blog-browse)');
+
+    let page = shellHtml;
+    page = replaceOnce(page, '<meta charset="UTF-8">', '<meta charset="UTF-8">\n    <base href="/">', 'meta charset');
+    page = replaceOnce(page, /<title>[\s\S]*?<\/title>/.exec(page)[0], `<title>${esc(post.title)} | sasak2</title>`, 'title');
+    page = replaceOnce(page, /<meta name="description"[^>]*>/.exec(page)[0], `<meta name="description" content="${esc(desc)}">`, 'meta description');
+    page = replaceOnce(
+        page,
+        '</head>',
+        `    <link rel="canonical" href="${url}">\n    <meta property="og:type" content="article">\n    <meta property="og:title" content="${esc(post.title)}">\n    <meta property="og:description" content="${esc(desc)}">\n    <meta property="og:url" content="${url}">\n    <meta property="article:published_time" content="${post.date}">\n</head>`,
+        '</head>'
+    );
+    page = replaceOnce(page, '<body>', `<body>\n    <script>history.replaceState(null, '', '${hashUrl}');</script>`, '<body>');
+    page = replaceOnce(page, '<a class="side-link" href="#blog" data-tab="blog">', '<a class="side-link active" href="#blog" data-tab="blog">', '사이드바 블로그 링크');
+    page = replaceOnce(page, '<div id="tab-blog" class="section"></div>', `<div id="tab-blog" class="section active">${blogSection}</div>`, '#tab-blog');
+
+    mkdirSync(join(pagesDir, post.slug), { recursive: true });
+    writeFileSync(join(pagesDir, post.slug, 'index.html'), page);
+}
+console.log(`p/ 글 페이지 생성: ${posts.length}개 (${renderers ? '전체 렌더링' : '간단한 형태'})`);
