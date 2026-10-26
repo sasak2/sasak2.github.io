@@ -38,6 +38,7 @@ summary: 목록에 보일 한두 줄 요약
 - 이미지는 `posts/img/`에 넣고 `![설명](posts/img/파일.png)`로 불러와요.
 - 수식은 LaTeX로 써요: 인라인 `$O(n)$`, 별도 줄 `$$ ... $$` (KaTeX). 달러 기호 자체는 `\$`로 써요. 코드 블록 안은 그대로 보여요.
 - `draft: true`를 넣으면 목록에서 빠져요.
+- `posts/_test/` 안의 글은 기능 확인용 샘플이라 사이트에 나오지 않아요. 로컬에서 보려면 `node scripts/build-posts.mjs --with-test`로 빌드하고, 그 결과(`posts.json`, `search.json`)는 커밋하지 마세요.
 - `main`에 푸시하면 GitHub Actions(`.github/workflows/build-posts.yml`)가 `posts.json`을 갱신해요. 직접 갱신하려면 `node scripts/build-posts.mjs`를 실행하세요.
 
 ## 로컬에서 보기
