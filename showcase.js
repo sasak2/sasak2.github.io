@@ -155,7 +155,7 @@
                     ctx.translate(cx, headY - r * 2.1 + bob);
                     ctx.rotate(wiggle);
                     ctx.scale(Math.max(k, 0), Math.max(k, 0));
-                    ctx.font = '700 ' + Math.round(r * 1.7) + 'px "Courier Prime", monospace';
+                    ctx.font = '700 ' + Math.round(r * 1.7) + 'px "Courier Prime", "Noto Sans KR", monospace';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.shadowColor = accent;
@@ -752,7 +752,7 @@
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'alphabetic';
                 const fs = Math.max(12, Math.min(16, cv.W * 0.032));
-                ctx.font = '700 ' + fs + 'px "Courier Prime", monospace';
+                ctx.font = '700 ' + fs + 'px "Courier Prime", "Noto Sans KR", monospace';
                 const tx = ox + size + Math.max(18, cv.W * 0.06);
                 const rowH = fs * 1.9;
                 const ty = oy + (size - rowH * 4) / 2 + fs;
@@ -823,7 +823,7 @@
                 ctx.lineTo(x1, cv.H * 0.88);
                 ctx.stroke();
 
-                ctx.font = '700 12px "Courier Prime", monospace';
+                ctx.font = '700 12px "Courier Prime", "Noto Sans KR", monospace';
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'middle';
                 for (let i = 0; i < 4; i++) {
