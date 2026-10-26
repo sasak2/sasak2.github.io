@@ -56,10 +56,99 @@ function gitUpdated(file) {
     }
 }
 
-// 검색용 본문 텍스트 (마크다운 기호를 대충 걷어낸 것)
-function plainText(md) {
+// [youtube-embed:start]
+// 이 블록은 blog.js 와 scripts/build-posts.mjs 에 똑같이 들어 있어야 해요 (한쪽만 고치지 마세요).
+// 규칙: 코드(블록, 인라인) 밖에서, 한 줄에 유튜브 주소만 단독으로 있을 때만 플레이어로 바꾼다.
+// 링크 문법([글자](주소)), 문장 중간의 주소, 목록/인용 안의 주소, 들여쓴 주소는 그대로 둔다.
+const YT_HOSTS = new Set(['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be']);
+const YT_ID = /^[A-Za-z0-9_-]{11}$/;
+const YT_CODE = /(```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]*`)/;
+const YT_LINE = /^(?:<(https?:\/\/[^\s<>\u0000]+)>|(https?:\/\/[^\s<>\u0000]+))[ \t]*$/gm;
+
+// 시작 시간: 90, 90s, 1m30s, 1h2m3s -> 초 (읽을 수 없으면 0)
+function ytSeconds(value) {
+    if (!value) return 0;
+    if (/^\d+$/.test(value)) return Number(value);
+    const m = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/i.exec(value);
+    if (!m || !(m[1] || m[2] || m[3])) return 0;
+    return Number(m[1] || 0) * 3600 + Number(m[2] || 0) * 60 + Number(m[3] || 0);
+}
+
+// youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID 만 인식한다. 아니면 null.
+function parseYoutube(href) {
+    let u;
+    try {
+        u = new URL(href);
+    } catch (e) {
+        return null;
+    }
+    const host = u.hostname.toLowerCase();
+    if (!YT_HOSTS.has(host)) return null;
+    const segs = u.pathname.split('/').filter(Boolean);
+    let id = '';
+    if (host === 'youtu.be') {
+        if (segs.length === 1) id = segs[0];
+    } else if (segs.length === 1 && segs[0] === 'watch') {
+        id = u.searchParams.get('v') || '';
+    } else if (segs.length === 2 && segs[0] === 'shorts') {
+        id = segs[1];
+    }
+    if (!YT_ID.test(id)) return null;
+    return { id, start: ytSeconds(u.searchParams.get('t')) || ytSeconds(u.searchParams.get('start')) };
+}
+
+function youtubeWatchUrl(info) {
+    return 'https://www.youtube.com/watch?v=' + info.id + (info.start ? '&t=' + info.start + 's' : '');
+}
+
+function youtubeEmbedHtml(info) {
+    const src = 'https://www.youtube-nocookie.com/embed/' + info.id + (info.start ? '?start=' + info.start : '');
+    return (
+        '<figure class="yt-embed"><div class="yt-frame">' +
+        '<iframe src="' + src + '" title="YouTube 동영상 플레이어" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" ' +
+        'allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>' +
+        '</div><figcaption class="yt-link"><a href="' + youtubeWatchUrl(info) + '" target="_blank" rel="noopener noreferrer">YouTube에서 보기</a></figcaption></figure>'
+    );
+}
+
+// 코드 바깥에서 "유튜브 주소만 있는 줄"을 찾아 replacer(info) 가 돌려준 문자열로 바꾼다.
+// 코드는 잠시 토큰으로 가려 두기 때문에 코드 앞뒤 문장과 이어진 줄은 단독 줄로 보지 않는다.
+function mapYoutubeLines(md, replacer) {
+    const codes = [];
     return md
-        .replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '')
+        .split(YT_CODE)
+        .map((part, i) => (i % 2 ? '\u0000' + (codes.push(part) - 1) + '\u0000' : part))
+        .join('')
+        .replace(YT_LINE, (line, angled, bare) => {
+            const info = parseYoutube(angled || bare);
+            return info ? replacer(info) : line;
+        })
+        .replace(/\u0000(\d+)\u0000/g, (m, n) => codes[Number(n)]);
+}
+
+// 마크다운 변환 전: 해당 줄을 자기 문단인 @@YT0@@ 로 바꿔 둔다 (앞뒤에 빈 줄을 넣어 다른 줄과 섞이지 않게)
+function protectYoutube(md, embeds) {
+    return mapYoutubeLines(md, (info) => {
+        embeds.push(info);
+        return '\n@@YT' + (embeds.length - 1) + '@@\n';
+    });
+}
+
+// 마크다운 변환 후: <p>@@YT0@@</p> 를 플레이어로 바꾼다. 문단이 아닌 곳에 남은 토큰은 일반 링크로 되돌린다.
+function restoreYoutube(html, embeds) {
+    return html
+        .replace(/<p>@@YT(\d+)@@<\/p>/g, (m, n) => (embeds[Number(n)] ? youtubeEmbedHtml(embeds[Number(n)]) : m))
+        .replace(/@@YT(\d+)@@/g, (m, n) => {
+            const info = embeds[Number(n)];
+            return info ? '<a href="' + youtubeWatchUrl(info) + '">' + youtubeWatchUrl(info) + '</a>' : m;
+        });
+}
+// [youtube-embed:end]
+
+// 검색용 본문 텍스트 (마크다운 기호를 대충 걷어낸 것)
+// 한 줄짜리 유튜브 주소(플레이어가 되는 줄)는 본문 글자가 아니므로 뺀다. 검색 인덱스에는 마크업이 들어가지 않는다.
+function plainText(md) {
+    return mapYoutubeLines(md.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, ''), () => ' ')
         .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
         .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
         .replace(/<[^>]+>/g, ' ')
@@ -228,7 +317,9 @@ function renderPostHtml(raw) {
                 return pre + '@@MATH' + (maths.length - 1) + '@@';
             });
     }
-    let html = marked.parse(parts.join(''));
+    // 한 줄에 유튜브 주소만 있는 줄은 변환 전에 자리표시자로 바꿔 두고, 변환 후 플레이어로 되돌린다 (blog.js 와 같은 방식).
+    const embeds = [];
+    let html = marked.parse(protectYoutube(parts.join(''), embeds));
     html = html.replace(/@@MATH(\d+)@@/g, (m, n) => {
         const item = maths[Number(n)];
         if (!item) return m;
@@ -238,6 +329,7 @@ function renderPostHtml(raw) {
             return item.raw.replace(/&/g, '&amp;').replace(/</g, '&lt;');
         }
     });
+    html = restoreYoutube(html, embeds);
 
     // 코드 블록: 문법 색 + 언어 라벨 (복사 버튼은 스크립트가 없으므로 뺀다)
     html = html.replace(/<pre><code(?: class="language-([\w+#.-]+)")?>([\s\S]*?)<\/code><\/pre>/g, (m, lang = '', code) => {
