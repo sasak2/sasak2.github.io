@@ -1,4 +1,22 @@
 {
-  "folders": [],
-  "posts": []
+  "folders": [
+    {
+      "path": "meta",
+      "title": "블로그 이야기",
+      "description": "블로그 소개와 운영 이야기",
+      "order": 90
+    }
+  ],
+  "posts": [
+    {
+      "slug": "meta/intro",
+      "folder": "meta",
+      "title": "안녕하세요, 사삭입니다",
+      "date": "2026-10-26",
+      "tags": [
+        "소개"
+      ],
+      "summary": "이 블로그를 왜 만들었는지, 앞으로 뭘 올릴지 적은 첫 글이에요."
+    }
+  ]
 }
