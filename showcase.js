@@ -903,21 +903,6 @@
                     });
                 }
 
-                // 마지막 수 뒤에는 드래곤 비숍의 긴 대각선(g7-a1)을 보여 준다
-                if (done) {
-                    ctx.save();
-                    ctx.setLineDash([cell * 0.2, cell * 0.16]);
-                    ctx.lineCap = 'round';
-                    ctx.lineWidth = Math.max(2, cell * 0.07);
-                    ctx.strokeStyle = accent;
-                    ctx.globalAlpha = 0.85;
-                    ctx.beginPath();
-                    ctx.moveTo(ox + 6.5 * cell, oy + 1.5 * cell);
-                    ctx.lineTo(ox + 0.5 * cell, oy + 7.5 * cell);
-                    ctx.stroke();
-                    ctx.restore();
-                }
-
                 // 이동 중인 기물
                 let moving = null, fx = 0, fy = 0;
                 if (phase === 'move') {
