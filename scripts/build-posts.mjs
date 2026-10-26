@@ -125,6 +125,12 @@ function walk(dir, relPath) {
     }
 }
 walk(postsDir, '');
+// posts/_test/ 는 기능 확인용 샘플 글이라 평소에는 건너뛴다 (목록, 글 수, 검색에 안 나옴).
+// 로컬에서 보고 싶을 때만: node scripts/build-posts.mjs --with-test  (결과 posts.json 은 커밋하지 말 것)
+if (process.argv.includes('--with-test')) {
+    walk(join(postsDir, '_test'), '');
+    console.log('주의: _test 글을 포함해서 빌드했어요. posts.json, search.json 을 커밋하지 마세요.');
+}
 
 posts.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : a.slug.localeCompare(b.slug)));
 
