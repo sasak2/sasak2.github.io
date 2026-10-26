@@ -36,6 +36,7 @@ summary: 목록에 보일 한두 줄 요약
 - 블로그 검색은 제목, 요약, 태그, 폴더 이름, 본문을 찾아요. 본문은 빌드 때 만들어지는 `search.json`을 써요.
 - 태그(`tags`)는 선택 사항이에요. 폴더와 별개로 붙이는 꼬리표이고, 블로그 첫 화면의 태그 칩으로 모아볼 수 있어요.
 - 이미지는 `posts/img/`에 넣고 `![설명](posts/img/파일.png)`로 불러와요.
+- 유튜브 영상은 **한 줄에 주소만 단독으로** 쓰면 플레이어(youtube-nocookie)로 바뀌고 아래에 "YouTube에서 보기" 링크가 붙어요. 지원 형식은 `https://www.youtube.com/watch?v=ID`, `https://youtu.be/ID`, `https://www.youtube.com/shorts/ID`이고, 시작 시간은 주소 뒤에 `?t=90`, `&t=1m30s`, `&start=90`처럼 붙여요. `[글자](주소)` 링크 문법, 문장 중간의 주소, 목록/인용 안의 주소, 코드 블록과 인라인 코드 안의 주소는 플레이어가 되지 않고 그대로 남아요. 이 기능의 코드는 `blog.js`와 `scripts/build-posts.mjs`에 같은 블록(`youtube-embed:start` ~ `end`)으로 들어 있으니 한쪽만 고치지 마세요.
 - 수식은 LaTeX로 써요: 인라인 `$O(n)$`, 별도 줄 `$$ ... $$` (KaTeX). 달러 기호 자체는 `\$`로 써요. 코드 블록 안은 그대로 보여요.
 - `draft: true`를 넣으면 목록에서 빠져요.
 - `posts/_test/` 안의 글은 기능 확인용 샘플이라 사이트에 나오지 않아요. 로컬에서 보려면 `node scripts/build-posts.mjs --with-test`로 빌드하고, 그 결과(`posts.json`, `search.json`)는 커밋하지 마세요.
