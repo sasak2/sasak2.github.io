@@ -1066,6 +1066,54 @@ a.tag-link:hover {
     border-radius: var(--border-radius-md);
 }
 
+/* 링크 미리보기 카드: 글 안에 <a class="link-card" ...> HTML 로 직접 쓴다 */
+.post-body a.link-card {
+    display: block;
+    margin: 1.4em 0;
+    padding: 14px 16px;
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.post-body a.link-card:hover {
+    border-color: var(--color-text-tertiary);
+    background: var(--color-background-tertiary);
+}
+
+.post-body .link-card-site {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--color-text-tertiary);
+}
+
+.post-body .link-card-title {
+    display: block;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+.post-body .link-card-desc {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.post-body .link-card-url {
+    display: block;
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    overflow-wrap: anywhere;
+}
+
 /* 유튜브 임베드: 글에 주소만 한 줄로 쓰면 자동으로 만들어진다 (blog.js, scripts/build-posts.mjs) */
 .post-body .yt-embed {
     max-width: 100%;

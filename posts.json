@@ -1,6 +1,24 @@
 {
   "folders": [
     {
+      "path": "algorithm",
+      "title": "알고리즘",
+      "description": "문제풀이와 자료구조 정리",
+      "order": 3
+    },
+    {
+      "path": "algorithm/ps",
+      "title": "PS",
+      "description": "알고리즘 문제 풀이(Problem Solving) 기록",
+      "order": 1
+    },
+    {
+      "path": "algorithm/ps/doj",
+      "title": "DOJ",
+      "description": "DOJ(doj.kr) 문제 풀이",
+      "order": 1
+    },
+    {
       "path": "meta",
       "title": "블로그 이야기",
       "description": "블로그 소개와 운영 이야기",
@@ -8,6 +26,17 @@
     }
   ],
   "posts": [
+    {
+      "slug": "algorithm/ps/doj/40",
+      "folder": "algorithm/ps/doj",
+      "title": "DOJ #40 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 (collision)",
+      "date": "2026-11-14",
+      "tags": [
+        "DOJ",
+        "PS"
+      ],
+      "summary": "DOJ 40번 문제의 풀이와 후기"
+    },
     {
       "slug": "meta/intro",
       "folder": "meta",

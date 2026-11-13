@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOJ #40 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 (collision) | sasak2</title>
+    <meta name="description" content="DOJ 40번 문제의 풀이와 후기">
+    <meta name="author" content="김현민">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0a0a0b">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%23fff'>S</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Courier+Prime:wght@400;700&family=STIX+Two+Text:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/@tabler/icons@2.44.0/tabler-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <link rel="stylesheet" href="styles.css?v=56095042">
+    <link rel="canonical" href="https://sasak2.github.io/p/algorithm/ps/doj/40/">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="DOJ #40 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 (collision)">
+    <meta property="og:description" content="DOJ 40번 문제의 풀이와 후기">
+    <meta property="og:url" content="https://sasak2.github.io/p/algorithm/ps/doj/40/">
+    <meta property="article:published_time" content="2026-11-14">
+</head>
+<body>
+    <script>history.replaceState(null, '', '/#blog/post/algorithm/ps/doj/40');</script>
+    <div class="layout">
+        <aside class="sidebar">
+            <a class="side-brand" href="#main/intro">sasak2</a>
+            <nav class="side-nav" aria-label="사이트 메뉴">
+                <div class="side-group">
+                    <div class="side-label">섹션</div>
+                    <a class="side-link" href="#main/intro" data-go="intro">소개</a>
+                    <a class="side-link" href="#main/circuit" data-go="circuit">전자공학</a>
+                    <a class="side-link" href="#main/terminal" data-go="terminal">해킹 / 보안</a>
+                    <a class="side-link" href="#main/bfs" data-go="bfs">알고리즘</a>
+                    <a class="side-link" href="#main/biped" data-go="biped">메이커</a>
+                    <a class="side-link" href="#main/chess" data-go="chess">체스</a>
+                    <a class="side-link" href="#main/bass" data-go="bass">베이스</a>
+                </div>
+                <div class="side-sep" aria-hidden="true"></div>
+                <div class="side-group">
+                    <div class="side-label">페이지</div>
+                    <a class="side-link" href="#history" data-tab="history">이력</a>
+                    <a class="side-link" href="#work" data-tab="work">작업</a>
+                    <a class="side-link active" href="#blog" data-tab="blog">블로그</a>
+                    <a class="side-link" href="#links" data-tab="links">링크</a>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="site">
+            <h1 class="sr-only">sasak2 포트폴리오 - 김현민</h1>
+
+            <div id="tab-main" class="section"></div>
+            <div id="tab-links" class="section"></div>
+            <div id="tab-history" class="section"></div>
+            <div id="tab-work" class="section"></div>
+            <div id="tab-blog" class="section active"><h2 class="section-title">블로그</h2>
+<nav id="blog-crumb" class="blog-crumb" hidden></nav>
+<div id="blog-browse" class="blog-browse" hidden style="display:none">
+    <aside class="blog-side">
+        <button id="blog-side-toggle" class="side-toggle" type="button" aria-label="폴더 목록 열기/닫기"></button>
+        <div class="side-panel">
+            <div id="blog-tree" class="blog-tree" role="navigation" aria-label="블로그 폴더"></div>
+            <div id="blog-tags" class="tag-box"></div>
+        </div>
+    </aside>
+    <div class="blog-main">
+        <input id="blog-search" class="blog-search" type="search" placeholder="글 검색 (제목, 내용, 태그)" autocomplete="off" aria-label="글 검색">
+        <div id="blog-list"></div>
+    </div>
+</div>
+<article id="blog-post" class="post"><nav class="blog-crumb post-crumb"><a href="#blog">블로그</a> / <a href="#blog/folder/algorithm">알고리즘</a> / <a href="#blog/folder/algorithm/ps">PS</a> / <a href="#blog/folder/algorithm/ps/doj">DOJ</a></nav><div class="blog-date">2026.11.14</div><h3 class="post-title">DOJ #40 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 (collision)</h3><div class="tag-row tag-row-sm"><a class="tag tag-link" href="#blog/tag/DOJ">DOJ</a><a class="tag tag-link" href="#blog/tag/PS">PS</a></div><details class="toc" open><summary class="toc-title">목차</summary><ul class="toc-list"><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%EB%93%A4%EC%96%B4%EA%B0%80%EB%A9%B0">들어가며</a></li><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%EB%AC%B8%EC%A0%9C-%EC%84%A4%EB%AA%85">문제 설명</a></li><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%EB%AC%B8%EC%A0%9C-%ED%92%80%EC%9D%B4">문제 풀이</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-1-%EC%A0%95%EC%88%98%EB%A1%9C-%ED%91%9C%ED%98%84%ED%95%A0-%EC%88%98-%EC%9E%88%EB%8B%A4">1. 정수로 표현할 수 있다</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-2-%EB%B9%84%EB%91%98%EA%B8%B0%EC%A7%91%EC%9D%98-%EC%9B%90%EB%A6%AC%EC%99%80-%EA%B3%B5%EC%9D%98-%EA%B0%9C%EC%88%98">2. 비둘기집의 원리와 공의 개수</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-3-%EA%B3%B5-%ED%86%B5%EA%B3%BC-%EB%85%BC%EB%A6%AC">3. 공 통과 논리</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-4-%EB%A3%A8%ED%94%84-%EB%B0%9C%EA%B2%AC">4. 루프 발견</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-5-time-table%EB%A1%9C-%EA%BC%AC%EB%8B%A4%EB%A6%AC-%EA%B5%AC%EA%B0%84%EC%9D%84-on%EC%9C%BC%EB%A1%9C-%EA%B3%84%EC%82%B0%ED%95%98%EC%9E%90">5. time table로 꼬다리 구간을 O(N)으로 계산하자</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-6-sum%EC%9D%98-%EC%9E%90%EC%84%B8%ED%95%9C-%EA%B5%AC%ED%98%84-%EB%B0%8F-tt1-%EA%B5%AC%EA%B0%84-%EC%A0%95%EC%9D%98">6. sum의 자세한 구현 및 [t,t+1) 구간 정의</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-7-%EC%BD%94%EB%93%9C-%EC%A0%84%EB%AC%B8">7. 코드 전문</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-8-%EC%B6%94%EA%B0%80%EC%A0%81%EC%9D%B8-%EC%9E%90%ED%88%AC%EB%A6%AC-%EB%85%BC%EC%A6%9D">8. 추가적인 자투리 논증</a></li><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%ED%92%80%EC%9D%B4-%ED%9B%84%EA%B8%B0-%EB%B0%8F-%EB%82%9C%EC%9D%B4%EB%8F%84">풀이 후기 및 난이도</a></li><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%EB%B6%80%EB%A1%9D">부록</a></li></ul></details><div class="post-body">
+<h2 id="sec-들어가며">들어가며<a class="h-anchor" href="#sec-%EB%93%A4%EC%96%B4%EA%B0%80%EB%A9%B0" title="이 제목의 링크">#</a></h2>
+<p>어느새 백준이 섭종한지 198일이 지났습니다.(이 문제를 풀기 시작한 11월 12일 기준)<br>PS를 하고싶어도 못하고 있었는데, DOJ라는 사이트가 있단걸 알게되었습니다!!</p>
+<p>그래서 오늘부터! 꾸준히 댁준<del>(BOJ가 백준이니 DOJ는 댁준임 깔깔~)</del>을 해보자는 목표를 세웠습니다<br>스트릭을 꾸준히 잇지는 못하더라도, 한 주에 두세 개정도 골드~플레티넘 문제를 꾸준히 풀고, 사고 과정, 막힌 점, 필요한 알고리즘/함수 사용법 등등에 대한 기록을 남기는게 목표입니다</p>
+<p>그래서 무슨 문제를 풀어야 할까 고민하며 문제 목록을 훑던 중, 내 시선을 사로잡는 문제 이름을 발견했습니다!</p>
+<p><img src="/posts/img/doj40/01.png" alt="DOJ 문제 목록의 40번 문제"></p>
+<p>어떻게 문제 이름이 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 <del>사후르!</del></p>
+<h2 id="sec-문제-설명">문제 설명<a class="h-anchor" href="#sec-%EB%AC%B8%EC%A0%9C-%EC%84%A4%EB%AA%85" title="이 제목의 링크">#</a></h2>
+<p>길이가 N이고 벽이 있는 복도에 M개의 공을 던집니다. 공은 벽에 튕겨 반대 방향으로 날아갑니다<br>공을 던지는 위치는 0입니다<br>공의 속력은 1이고, 공을 새로 던지는 시간(정수)이 각각 주어집니다<br>공을 새로 던질 때, 위치 0에는 공이 존재하지 않습니다<br>시간 T동안 공끼리의 충돌 횟수를 구하는 문제입니다<br>N&lt;=1000, M&lt;=10^6, T&lt;=10^9 입니다</p>
+<a class="link-card" href="https://doj.kr/ko/problems/40" target="_blank" rel="noopener">
+<span class="link-card-site">DOJ · doj.kr</span>
+<span class="link-card-title">#40 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 (collision)</span>
+<span class="link-card-desc">Gold II · GSHS 1-4 Class Competition 2025</span>
+<span class="link-card-url">https://doj.kr/ko/problems/40</span>
+</a>
+<small>백준에서도 문제 전문을 다른 곳에 재게시하는거는 금지되어있었으므로, 링크와 간단한 요약만 남기겠습니다</small>
+
+<hr>
+<blockquote>
+<p><strong>여기서부터 스포일러 있음</strong></p>
+<p>직접 풀어 보실 분은 여기까지만 읽어 주세요!</p>
+</blockquote>
+<hr>
+<h2 id="sec-문제-풀이">문제 풀이<a class="h-anchor" href="#sec-%EB%AC%B8%EC%A0%9C-%ED%92%80%EC%9D%B4" title="이 제목의 링크">#</a></h2>
+<p>목차</p>
+<ol>
+<li>정수로 표현할 수 있다</li>
+<li>비둘기집의 원리와 공의 개수</li>
+<li>공 통과 논리</li>
+<li>루프 발견</li>
+<li>time table로 꼬다리 구간을 O(N)으로 계산하자</li>
+<li>sum의 자세한 구현 및 [t,t+1) 구간 정의</li>
+<li>코드 전문</li>
+<li>추가적인 자투리 논증</li>
+</ol>
+<h3 id="sec-1-정수로-표현할-수-있다">1. 정수로 표현할 수 있다<a class="h-anchor" href="#sec-1-%EC%A0%95%EC%88%98%EB%A1%9C-%ED%91%9C%ED%98%84%ED%95%A0-%EC%88%98-%EC%9E%88%EB%8B%A4" title="이 제목의 링크">#</a></h3>
+<p>우선 복도의 길이도 정수고, 공을 던지는 시간도 정수입니다<br>그러면 공끼리 부딪히는 시간도 정수거나, 정수+0.5임을 알 수 있습니다.<br>아무튼, 앞으로 정수 단위로 생각을 해보도록 하겠습니다.<br><del>이 문제를 1프레임마다 공을 실수 좌표에서 움직이면서 풀려고 하는 사람은 없겠지...?</del></p>
+<h3 id="sec-2-비둘기집의-원리와-공의-개수">2. 비둘기집의 원리와 공의 개수<a class="h-anchor" href="#sec-2-%EB%B9%84%EB%91%98%EA%B8%B0%EC%A7%91%EC%9D%98-%EC%9B%90%EB%A6%AC%EC%99%80-%EA%B3%B5%EC%9D%98-%EA%B0%9C%EC%88%98" title="이 제목의 링크">#</a></h3>
+<p>공을 던지는 시점에, 위치 0에는 공이 없습니다.<br>그러므로, 같은 위치에 같은 방향을 향하는 공이 두 개 존재할 수 없습니다.<br>(같은 칸, 방향인 두 공은 시작점에서도 같이 있었어야 하므로)<br>그렇다면, 각 위치에서의 공의 상태는 4가지 중 하나입니다</p>
+<ol>
+<li>오른쪽으로 가는 공이 있다</li>
+<li>왼쪽으로 가는 공이 있다</li>
+<li>왼쪽과 오른쪽 각각으로 가는 공이 하나씩 있다(서로 부딪혀 있는 상태)</li>
+<li>공이 존재하지 않는다.</li>
+</ol>
+<p>여기서, 우리는 비둘기집의 원리에 따라 공이 최대 2N개 만큼만 던져질 수 있다는 사실을 알 수 있습니다.<br>(위치가 총 N+1개이고, 벽에서는 공이 하나밖에 존재하지 못하므로)</p>
+<h3 id="sec-3-공-통과-논리">3. 공 통과 논리<a class="h-anchor" href="#sec-3-%EA%B3%B5-%ED%86%B5%EA%B3%BC-%EB%85%BC%EB%A6%AC" title="이 제목의 링크">#</a></h3>
+<p>각 시점마다 공의 배치도를 우리는 길이 N+1의 배열로 표현할 수 있습니다.<br>1이면 공이 오른쪽으로 움직이는 중<br>-1이면 공이 왼쪽으로 움직이는 중<br>0이면 공이 존재하지 않음<br>2면 양쪽에서 공이 부딪히는 중<br>예를 들어, 사진과 같은 상황은 0 1 -1 0 2 1 -1로 표현할 수 있습니다</p>
+<p><img src="/posts/img/doj40/02.png" alt="복도 상태를 배열로 나타낸 예시"></p>
+<p>그리고, 우리는 시간을 y축으로 하고, 공의 위치를 x축에 나타낸 그래프처럼 문제 상황을 해석할 수 있습니다</p>
+<p><img src="/posts/img/doj40/03.png" alt="공끼리 튕기는 시간-위치 그래프"></p>
+<p>한편, 공의 속력은 항상 1입니다.<br>공끼리 충돌해도 방향만 바뀌므로, 공이 서로 통과하고 공의 이름만 달라지는 것으로 봐도 됩니다.<br>그리고 우리는 충돌 횟수가 중요하지 특정 공의 관계가 중요하지 않으므로, 공의 이름은 신경쓰지 않고, 공이 서로 통과하는 것처럼 해석해도 됩니다.<br>그리고 공이 겹치는 상황마다 충돌 횟수를 1씩 늘려주는 방식으로 처리해도 괜찮다는것을 알 수 있습니다.</p>
+<p><img src="/posts/img/doj40/04.png" alt="공끼리 통과한다고 본 시간-위치 그래프"></p>
+<h3 id="sec-4-루프-발견">4. 루프 발견<a class="h-anchor" href="#sec-4-%EB%A3%A8%ED%94%84-%EB%B0%9C%EA%B2%AC" title="이 제목의 링크">#</a></h3>
+<p>그리고, 공이 한 번 왕복하는데 2N만큼의 시간이 걸립니다.</p>
+<p><img src="/posts/img/doj40/05.png" alt="주기 2N으로 반복되는 루프"></p>
+<p>여기서 우리는 새로운 공을 던지지 않는다면, 복도 상황이 계속해서 반복된다는 사실을 알 수 있습니다! 그리고 반복의 주기는 2N입니다.<br>이 그림을 보면 더 직관적으로 알 수 있죠.<br>그리고, 각각의 공 궤적이 다른 궤적과 서로 두 번씩 만나므로, 한 번의 루프에서 충돌이 K*(K-1)번만큼 생긴다는 사실도 알 수 있습니다!<br>(이 때, K = 현재 복도의 공 개수)</p>
+<p>이렇게, 조금의 최적화를 해냈습니다.<br>하지만, 항상 루프의 시작에 공이 새롭게 던져지는것이 아니므로, 루프에 속하지 않는 &quot;꼬다리&quot;가 생깁니다.</p>
+<p><img src="/posts/img/doj40/06.png" alt="N=2에서 루프와 꼬다리"></p>
+<p>그래서 우리는 이 꼬다리를 따로 계산해줘야합니다.</p>
+<h3 id="sec-5-time-table로-꼬다리-구간을-on으로-계산하자">5. time table로 꼬다리 구간을 O(N)으로 계산하자<a class="h-anchor" href="#sec-5-time-table%EB%A1%9C-%EA%BC%AC%EB%8B%A4%EB%A6%AC-%EA%B5%AC%EA%B0%84%EC%9D%84-on%EC%9C%BC%EB%A1%9C-%EA%B3%84%EC%82%B0%ED%95%98%EC%9E%90" title="이 제목의 링크">#</a></h3>
+<p>꼬다리를 어떻게 계산하느냐?</p>
+<p>루프의 길이 * 복도의 길이 만큼의 크기를 가지는 이중배열과 sum이라는 이름의 배열을 만듭니다.<br>즉, 각 시간마다의 복도 상태를 기록하는 테이블과, 각 시간마다 부딪히는 횟수를 기록하는 배열을 만드는겁니다.<br>그리고 새로운 공을 던질 때 마다, 새로운 공과 부딪히는 기존의 공 개수를 세서, sum 배열에 더해주면 됩니다.<br>이 때, 아까 말했듯이 공을 서로 관통하는 것처럼 다룹니다.</p>
+<p><img src="/posts/img/doj40/07.png" alt="새 공을 덧그리며 갱신되는 time table과 sum"></p>
+<p>이렇게 하면, 테이블 한 칸에 공을 새로 추가하는데에 상수시간이 듭니다.<br>루프의 길이가 2N이므로, 공 하나를 새로 던졌을 때 전체 테이블을 업데이트 하는데에 2N만큼의 시간이 들고,<br>이 업데이트를 최대 2N번 하므로 (이 2N번은 공이 새롭게 던져지는 횟수입니다.)<br>O(N^2) 만큼의 시간복잡도를 가집니다</p>
+<p>이렇게 해서, 꼬다리 부분에서 공이 부딪힌 횟수는 sum배열에서 가져와 answer에 더하고,<br>loop에서 계산되는 부분은 sum 전체 합 * loop 반복횟수 만큼 answer에 더하면 됩니다</p>
+<h3 id="sec-6-sum의-자세한-구현-및-tt1-구간-정의">6. sum의 자세한 구현 및 [t,t+1) 구간 정의<a class="h-anchor" href="#sec-6-sum%EC%9D%98-%EC%9E%90%EC%84%B8%ED%95%9C-%EA%B5%AC%ED%98%84-%EB%B0%8F-tt1-%EA%B5%AC%EA%B0%84-%EC%A0%95%EC%9D%98" title="이 제목의 링크">#</a></h3>
+<p>우선, 앞에서는 sum 배열을 특정 시간에서 부딪히는 횟수라고 모호하게 정의했지만, 실제로 코드를 짜려면 좀 엄밀하게 정의를 해야됩니다.<br>저는 sum[t] = [t,t+1) 구간에서 부딪히는 횟수라고 정의했습니다.</p>
+<p>그러면 상태 배열에서 어떤 상황일 때 충돌로 간주해야 할까요?</p>
+<ol>
+<li>상태 배열에서 2가 있을 때<br>시간이 바로 t일때 두 공이 충돌한 상황입니다.</li>
+<li>오른쪽으로 향하는 공 오른쪽에 왼쪽으로 향하는 공이 있을 때<br>시간이 0.5만큼 지나면 이 둘이 충돌합니다.<br>이 경우, (1 or 2)와 (-1 or 2)가 인접해 있으면 충돌한다고 간주하면 됩니다.</li>
+</ol>
+<p>이렇게 두 경우에, 충돌이 일어납니다.</p>
+<p>꼬다리를 계산할 때는 새로 넣은 공과의 충돌횟수를 더할 것이기 때문에, 새로 넣은 공의 위치 부분만 조사하여 sum 배열에 더하면 됩니다.</p>
+<p>또한, 꼬다리를 계산할 때, 우리가 시간 범위를 [t,t+1) 범위로 잡았으므로,<br>계산한 값은 [0,T) 까지의 충돌 횟수입니다<br>그러므로 시간이 정확히 T일때의 충돌 횟수도 추가해줘야 합니다.<br>time table에서 2의 개수를 세면, 정확히 T일때의 충돌 횟수를 셀 수 있습니다.</p>
+<h3 id="sec-7-코드-전문">7. 코드 전문<a class="h-anchor" href="#sec-7-%EC%BD%94%EB%93%9C-%EC%A0%84%EB%AC%B8" title="이 제목의 링크">#</a></h3>
+<div class="code-block"><div class="code-bar"><span class="code-lang">cpp</span></div><pre><code class="language-cpp hljs"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;bits/stdc++.h&gt;</span></span>
+
+<span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;
+
+<span class="hljs-type">int</span> corridor[<span class="hljs-number">2048</span>][<span class="hljs-number">1024</span>]={{<span class="hljs-number">0</span>,},};
+<span class="hljs-type">int</span> sum[<span class="hljs-number">2048</span>]={<span class="hljs-number">0</span>,};
+<span class="hljs-comment">//배열의 크기가 stack의 크기를 넘겨서, 전역변수로 선언한다.</span>
+
+<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">add_ball</span><span class="hljs-params">(<span class="hljs-type">int</span>* position, <span class="hljs-type">int</span> direction)</span> </span>{
+    <span class="hljs-comment">/*
+    특정 위치에 공을 추가하는 함수, 공 추가하기 이전 위치상태가 0, 1, -1, 2임에 따라서
+    1/-1, 2 등으로 바뀐다.
+    direction 인자는 추가하는 공의 방향이다.
+    */</span>
+    <span class="hljs-keyword">if</span>(*position == <span class="hljs-number">0</span>) {
+        *position = direction;
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(*position != <span class="hljs-number">2</span>) {
+        *position = <span class="hljs-number">2</span>;
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">//예외상황이 있으면 이 조건분기에 들어오지만, 그럴 일은 없다.</span>
+    }
+    <span class="hljs-keyword">return</span>;
+}
+
+<span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-type">int</span> n, m, t;
+    <span class="hljs-type">long</span> <span class="hljs-type">long</span> <span class="hljs-type">int</span> collision=<span class="hljs-number">0</span>; <span class="hljs-comment">//answer</span>
+    <span class="hljs-comment">/*
+        loop가 대략적으로 10^6번 일어나고, 충돌은 대략 10^3 * 10^3 번 일어나므로
+        값은 대략 10^12, 오버플로우가 일어난다.
+        자세한 설명은 8.1절에서 다룬다.
+    */</span>
+
+    vector&lt;<span class="hljs-type">int</span>&gt; ball_time; <span class="hljs-comment">//공이 언제 새롭게 던져지는지 저장하는 배열</span>
+
+    <span class="hljs-comment">//값 입력받는다.</span>
+    <span class="hljs-built_in">scanf</span>(<span class="hljs-string">&quot;%d %d&quot;</span>,&amp;n, &amp;m);
+    <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>; i&lt;m; i++) {
+        <span class="hljs-type">int</span> temp;
+        <span class="hljs-built_in">scanf</span>(<span class="hljs-string">&quot;%d&quot;</span>, &amp;temp);
+        ball_time.<span class="hljs-built_in">push_back</span>(temp);
+    }
+    <span class="hljs-built_in">sort</span>(ball_time.<span class="hljs-built_in">begin</span>(),ball_time.<span class="hljs-built_in">end</span>());
+
+    <span class="hljs-comment">//문제에 입력값이 정렬되어서 들어온다는 말이 없어서, 직접 정렬을 해줘야한다.</span>
+    <span class="hljs-comment">//다행히 사이트 내에서 채점용 테스트 케이스를 직접 볼 수 있어서, 정렬을 해야한다는 사실을 깨달을 수 있었다.</span>
+    <span class="hljs-built_in">scanf</span>(<span class="hljs-string">&quot;%d&quot;</span>,&amp;t);
+    ball_time.<span class="hljs-built_in">push_back</span>(t);
+    <span class="hljs-comment">//뒤의 꼬다리와 loop를 계산하는 로직에서 마지막에는 t까지 계산해야 하므로, ball_time에 t를 넣었다.</span>
+
+    <span class="hljs-comment">/*
+    int corridor[2048][1024]={{0,},};
+    int sum[2048]={0,};
+    원래 main 함수 내부에 선언했으나, stack 크기를 넘을 수 있어서 전역 변수로 옮겼다.
+
+    corridor[time][위치]
+    복도의 공 상태를 나타냄
+    0 : 공이 없음
+    1 : 오른쪽-&gt; 을 향하는 공이 존재
+    -1 : 왼쪽 &lt;- 을 향하는 공이 존재
+    2 : 양쪽 다 공이 있음(현재 부딪힌 상태)
+    corridor[t][0]이 처음, corridor[t][n]이 끝
+    [t][0]에는 무조건 오른쪽-&gt;
+    [t][n]에는 무조건 왼쪽 &lt;- 공만 존재하도록 하자.
+
+    sum : [t,t+1) 에서 생기는 충돌들
+    */</span>
+
+    <span class="hljs-type">int</span> time_now = <span class="hljs-number">0</span>;
+    
+    <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; ball_time.<span class="hljs-built_in">size</span>(); i++) {
+        <span class="hljs-comment">//일단 corridor에 공을 넣고, 그 다음에 시간에 따라서 collision에 더해보자</span>
+        time_now=ball_time[i];
+        <span class="hljs-keyword">if</span>(time_now==t) {
+            <span class="hljs-comment">/*
+            꼬다리와 loop를 계산하는 로직에서 마지막에는 t까지 계산해야 하므로,
+            ball_time에 t를 넣었다.
+            그래서 끝나면 break를 하는 조건문이 추가되었다. 
+            */</span>
+            <span class="hljs-keyword">break</span>;
+        }
+
+        <span class="hljs-comment">//corridor[time_now+j][j]에다가 공을 추가한다</span>
+        <span class="hljs-comment">//물론 j&gt;n일때, 반대로 계산해야한다.</span>
+        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> j=<span class="hljs-number">0</span>; j&lt;n; j++) {        
+            <span class="hljs-type">int</span>* now_adding_balls = &amp;corridor[(time_now+j)%(<span class="hljs-number">2</span>*n)][j];
+            <span class="hljs-built_in">add_ball</span>(now_adding_balls,<span class="hljs-number">1</span>);
+            
+            <span class="hljs-keyword">if</span>(*(now_adding_balls+<span class="hljs-number">1</span>) == <span class="hljs-number">-1</span> || *(now_adding_balls+<span class="hljs-number">1</span>) == <span class="hljs-number">2</span>)
+                sum[(time_now+j)%(<span class="hljs-number">2</span>*n)]++; 
+            <span class="hljs-comment">/* 
+            *now_adding_balls는 1 또는 2가 확정이므로, 
+            *(now_adding_balls+1)만 확인하면 충돌 여부를 확인할 수 있다.
+            이 조건이 맞으면 두 공 사이에 충돌이 발생한다.
+            */</span>
+               
+            <span class="hljs-keyword">if</span>(*now_adding_balls==<span class="hljs-number">2</span>)
+                sum[(time_now+j)%(<span class="hljs-number">2</span>*n)]++;
+                
+            <span class="hljs-comment">//또한 *now_adding_balls가 2라면, 한 점에서 충돌이 또 발생한다</span>
+        }    
+        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> j=n; j&lt;<span class="hljs-number">2</span>*n; j++) {
+            <span class="hljs-type">int</span>* now_adding_balls = &amp;corridor[(time_now+j)%(<span class="hljs-number">2</span>*n)][<span class="hljs-number">2</span>*n-j];
+            <span class="hljs-built_in">add_ball</span>(now_adding_balls,<span class="hljs-number">-1</span>);
+
+            <span class="hljs-keyword">if</span>(*(now_adding_balls<span class="hljs-number">-1</span>) == <span class="hljs-number">1</span> || *(now_adding_balls<span class="hljs-number">-1</span>) == <span class="hljs-number">2</span>)
+                sum[(time_now+j)%(<span class="hljs-number">2</span>*n)]++;
+            <span class="hljs-keyword">if</span>(*now_adding_balls==<span class="hljs-number">2</span>)
+                sum[(time_now+j)%(<span class="hljs-number">2</span>*n)]++;
+        }
+
+        <span class="hljs-comment">//이제 loop와 꼬다리를 더한다.</span>
+        
+        <span class="hljs-type">int</span> loop_sum=<span class="hljs-number">0</span>;
+        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> j=<span class="hljs-number">0</span>; j&lt;<span class="hljs-number">2</span>*n; j++)
+            loop_sum += sum[j];
+
+        <span class="hljs-keyword">while</span>(time_now+<span class="hljs-number">2</span>*n&lt;=ball_time[i+<span class="hljs-number">1</span>]) {
+            collision += loop_sum;
+            time_now+=<span class="hljs-number">2</span>*n;
+            <span class="hljs-comment">/*loop 한 번당 loop_sum을 더한다.
+            나누기로 계산을 하면 더 빠르다.
+            이 while문의 시간복잡도가 O(T/N)으로, T=10^9, N=1인 경우에 실행에 시간이 좀 걸린다.
+            이 내용에 관해서는 8.4절에서 자세히 다룬다.
+            */</span>        
+        }
+
+        <span class="hljs-keyword">while</span>(time_now&lt;ball_time[i+<span class="hljs-number">1</span>]) {
+            collision+=sum[time_now%(<span class="hljs-number">2</span>*n)];
+            time_now++;
+            <span class="hljs-comment">//꼬다리 부분을 더한다.</span>
+        }
+    }
+
+    <span class="hljs-comment">/*
+    T-1까지 했으므로,[0,T) 부분에서의 충돌을 모두 더했다
+    정확히 T일때의 충돌횟수는 상태가 2일때이다. 
+    즉, 2의 개수를 세면 된다
+    */</span>
+    <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) {
+        <span class="hljs-keyword">if</span>(corridor[t%(<span class="hljs-number">2</span>*n)][i]==<span class="hljs-number">2</span>)
+            collision++;
+    }
+    
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%lld&quot;</span>,collision);
+
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}
+</code></pre></div>
+<h3 id="sec-8-추가적인-자투리-논증">8. 추가적인 자투리 논증<a class="h-anchor" href="#sec-8-%EC%B6%94%EA%B0%80%EC%A0%81%EC%9D%B8-%EC%9E%90%ED%88%AC%EB%A6%AC-%EB%85%BC%EC%A6%9D" title="이 제목의 링크">#</a></h3>
+<h4>1. 답이 int 범위를 넘어선다.</h4>
+<p>주석에도 적어놓았습니다.<br>loop의 주기는 2000,<br>최대 2000개의 공이 존재할 수 있으므로<br>한 루프당 4<em>10^6번의 충돌이 일어날 수 있고,<br>T=10^9이므로 루프가 5</em>10^5번 반복될 수 있습니다.<br>그러므로 결과는 2<em>10^12로, int 범위(2.1</em>10^9)를 넘어갑니다.</p>
+<h4>2. 입력값 정렬이 안되어있다.</h4>
+<p>정말 놀랍게도 발문 어디에도 공을 던지는 시각 t_i가 정렬되어 들어온다는 말이 없습니다.<br>당연히 정렬되는줄 알고 제출했다가 틀려서 맞왜틀(맞는데 왜 틀림?) 상태였습니다. ㅋㅋㅋㅋ<br>다행히도 채점할 때 쓰는 테스트케이스를 볼 수 있어서 봤더니 입력값이 정렬이 안되어있었습니다.<br>그게 아니었으면 평생 왜 틀렸는지 모를 뻔 했습니다. ㅋㅋㅋㅋ</p>
+<h4>3. corridor 배열의 크기가 stack을 넘는다.</h4>
+<p>corridor 배열은 4byte 크기의 int 자료형이 2048 * 1024개 있습니다.<br>이는 8MB로, 리눅스의 기본 상태 메인 스레드 스택 크기와 같습니다.<br>온라인 채점 환경에서는 실행 환경을 알 수 없으므로, 전역변수로 선언하여 정적 메모리 영역에 할당되도록 하였습니다.</p>
+<h4>4. loop로 반복되는부분을 구하는 방법 구현</h4>
+<p>사실 나누기를 통해 루프가 반복되는 횟수를 구할 수 있습니다.<br>하지만, 루프가 반복되는 횟수를 구하는 식을 세우려면, 코너케이스에서도 잘 작동하는지 세심하게 확인해가며 식을 세워야합니다.<br>귀찮아서 그냥 while문을 이용해 여러번 덧셈하는 방식을 사용했습니다. ㅋㅋㅋㅋㅋ</p>
+<p>짤 때는 별 문제가 없을것이라고 생각했는데, 이 while문은 약 T/2N번 실행됩니다.<br>즉, T=10^9, N=1인 상황에서 5*10^8번 실행이 됩니다.<br>CPU가 1초에 러프하게 약 1억(10^8)번 정도 명령을 실행할 수 있는걸 생각하면 TLE가 우려됩니다.<br>하지만, 이 while문의 경우, 단순한 덧셈이고, 분기예측 성공 확률도 높기 때문에, 초당 1억번 보다 더 빠르게 실행됩니다.<br>VSC 컴파일 및 실행 버튼을 눌러 O0(디버그 모드)로 컴파일 되었을 때 약 1.5초가량 걸렸고,</p>
+<div class="code-block"><div class="code-bar"><span class="code-lang">cpp</span></div><pre><code class="language-cpp hljs"><span class="hljs-meta">#<span class="hljs-keyword">pragma</span> GCC optimize(<span class="hljs-string">&quot;O3&quot;</span>)</span>
+<span class="hljs-meta">#<span class="hljs-keyword">pragma</span> GCC optimize(<span class="hljs-string">&quot;Ofast&quot;</span>)</span>
+<span class="hljs-meta">#<span class="hljs-keyword">pragma</span> GCC optimize(<span class="hljs-string">&quot;unroll-loops&quot;</span>)</span>
+</code></pre></div>
+<p>옵션을 통해 컴파일을 최적화하고 실행해본 결과 약 0.2초가량 걸립니다.<br>(이 옵션에 대한 설명은 <a href="https://justicehui.github.io/etc/2019/08/29/Optimization/">여기</a>서 확인할 수 있습니다.)<br>저는 cpp을 사용하여서 큰 문제가 없었지만, 파이썬 등의 느린 언어를 사용한다면 차이가 생길 수 있습니다.</p>
+<p>한편, 온라인 채점 환경에서 최대 실행 시간이 56ms인것으로 보아, N이 작고 T가 큰 상황을 저격하는 케이스가 없었던 것 같기도 합니다.</p>
+<p>아무튼, 이 while문을 나눗셈을 이용해 최적화한다면 다음과 같이 적을 수 있습니다.</p>
+<div class="code-block"><div class="code-bar"><span class="code-lang">cpp</span></div><pre><code class="language-cpp hljs">    <span class="hljs-type">long</span> <span class="hljs-type">long</span> loops = (ball_time[i+<span class="hljs-number">1</span>] - time_now) / (<span class="hljs-number">2</span>*n); <span class="hljs-comment">// 루프가 반복되는 횟수</span>
+    collision += loops * loop_sum;   <span class="hljs-comment">// 루프 한 번당 loop_sum</span>
+    time_now += loops * (<span class="hljs-number">2</span>*n);       <span class="hljs-comment">// 루프만큼 시간 이동</span>
+    <span class="hljs-comment">//generated by claude </span>
+</code></pre></div>
+<h4>5. 시간 구간 정의와 마지막 시점 충돌 횟수 세기</h4>
+<p>앞서 sum의 시간 구간을 [t,t+1) 까지로 정의했었습니다,<br>반복문을 모두 돌면 [0,T) 범위의 충돌만 계산하여서 시간=T 부분을 더하지 않게 됩니다.<br>시간이 정확히 T일 때는, 한 위치에서 두 공이 충돌하였을 때입니다.<br>즉, 상태가 2인 위치의 개수를 세서 더하면 됩니다.</p>
+<p>[t,t+1)로 시간을 정의한 이유도 있습니다.<br>원래는 (t-1,t] 까지 충돌한 횟수로 정의를 하려고 했었는데, 구현을 하는 부분에서 코너케이스가 많이 생기고, 배열도 범위를 넘는 부분을 참조하는것을 방지하기위해 조건문을 더 추가해야 하는 등, 코드가 더러워졌습니다.<br>그래서 [t,t+1)로 정의를 바꾸게 되었습니다.</p>
+<h2 id="sec-풀이-후기-및-난이도">풀이 후기 및 난이도<a class="h-anchor" href="#sec-%ED%92%80%EC%9D%B4-%ED%9B%84%EA%B8%B0-%EB%B0%8F-%EB%82%9C%EC%9D%B4%EB%8F%84" title="이 제목의 링크">#</a></h2>
+<p>문제의 핵심 풀이를 떠올리는 데에는 1시간 30분 정도가 걸렸습니다.<br>그리고 다음 날 구현해 첫 제출까지 2시간정도(수업시간에 딴짓으로 ㅋㅋㅋ 한거라서 조금 더 시간이 걸렸습니다)걸렸고,<br>이후 정렬을 하지 않은것이 문제인거를 깨닫고 수정해 제출해 마침내 AC를 받았습니다.</p>
+<p><img src="/posts/img/doj40/08.png" alt="AC 받은 제출 결과"></p>
+<p>난이도는 골드 2인데, 생각보다 쉬웠던거 같습니다.<br>loop가 생기는걸 발견하는 것 까지는 거의 30분 만에 생각해냈고, time table을 만들어보는 생각이 주된 아이디어였는데, 노트에 직접 문제 상황을 단순화한 그림을 그려보는 것이 이 아이디어를 떠올리는데에 큰 도움이 되었습니다.</p>
+<p><img src="/posts/img/doj40/09.jpg" alt="풀이할 때 쓴 노트 1"></p>
+<p><img src="/posts/img/doj40/10.jpg" alt="풀이할 때 쓴 노트 2"></p>
+<p>사실 고3 이후로 PS를 거의 안해서, 감이 다 떨어진거 치고는 빨리 푼 것 같습니다.<br>오랜만에 PS를 하니 굉장히 재미있었습니다.<br>문제 상황을 해석하고 단순화하기 위해 여러가지 방법을 시도해보는 과정과, 결국 AC가 떴을 때의 기쁨.<br><del>그치만 구현과 디버깅은 귀찮습니다.</del><br>제가 그동안 PS에 열광했었던 이유를 다시 알 수 있었습니다</p>
+<h2 id="sec-부록">부록<a class="h-anchor" href="#sec-%EB%B6%80%EB%A1%9D" title="이 제목의 링크">#</a></h2>
+<p>오랜만에 std::sort를 써서, <code>sort(vec.front(), vec.back());</code>으로 정렬을 할 뻔 했습니다.<br>값이 아니라 반복자를 넘겨야 하는것은 알고 있었는데, 반복자를 넘겨주는게 front인지 begin인지 헷갈렸습니다.<br>아무튼 <code>sort(vec.begin(), vec.end());</code>으로 정렬을 해야합니다.</p>
+<p>그리고, 포인터도 오랜만에 써서 조금 헷갈렸었습니다.<br>정리하자면, 다음과 같이 사용하면 됩니다.</p>
+<div class="code-block"><div class="code-bar"><span class="code-lang">cpp</span></div><pre><code class="language-cpp hljs">    <span class="hljs-type">int</span> a[<span class="hljs-number">2</span>]={<span class="hljs-number">1</span>,<span class="hljs-number">2</span>};
+    <span class="hljs-type">int</span>*p = &amp;a[<span class="hljs-number">0</span>]; <span class="hljs-comment">//또는 int *p = a;</span>
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d&quot;</span>,*(p+<span class="hljs-number">1</span>)); <span class="hljs-comment">//2</span>
+</code></pre></div>
+<p>보여준 코드 전문은 제출한 코드랑 다릅니다.<br>가독성을 좋게 하기 위해 주석을 열심히 적었습니다.<br>실제 제출한 코드는 다음과 같습니다.<br>글과 모순되는 내용이 있을 수 있습니다. <del>주석이 좀 더 날것의 형태를 하고있음을 알 수 있습니다. ㅋㅋㅋㅋ</del></p>
+<details>
+<summary>실제 제출한 코드 펼치기</summary>
+
+<div class="code-block"><div class="code-bar"><span class="code-lang">cpp</span></div><pre><code class="language-cpp hljs"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;bits/stdc++.h&gt;</span></span>
+
+<span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;
+
+<span class="hljs-type">int</span> corridor[<span class="hljs-number">2048</span>][<span class="hljs-number">1024</span>]={{<span class="hljs-number">0</span>,},};
+<span class="hljs-comment">//stack 크기를 넘나보네 ㅇㅅㅇ;;</span>
+<span class="hljs-type">int</span> sum[<span class="hljs-number">2048</span>]={<span class="hljs-number">0</span>,};
+
+<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">add_ball</span><span class="hljs-params">(<span class="hljs-type">int</span>* position, <span class="hljs-type">int</span> direction)</span> </span>{
+    <span class="hljs-keyword">if</span>(*position == <span class="hljs-number">0</span>) {
+        *position = direction;
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(*position != <span class="hljs-number">2</span>) {
+        *position = <span class="hljs-number">2</span>;
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">//예외상황이 있진 않겠지?</span>
+    }
+    <span class="hljs-keyword">return</span>;
+}
+
+<span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-type">int</span> n, m, t;
+    <span class="hljs-type">long</span> <span class="hljs-type">long</span> <span class="hljs-type">int</span> collision=<span class="hljs-number">0</span>; <span class="hljs-comment">//answer</span>
+    <span class="hljs-comment">/*
+        loop가 10^6번 일어나고,
+        충돌은 최대 10^3 * 10^3 번 일어나므로
+        10^12이니까 오버플로우 일어나네
+    */</span>
+    vector&lt;<span class="hljs-type">int</span>&gt; ball_time;
+
+    <span class="hljs-comment">//값 입력받는다.</span>
+    <span class="hljs-built_in">scanf</span>(<span class="hljs-string">&quot;%d %d&quot;</span>,&amp;n, &amp;m);
+    <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>; i&lt;m; i++) {
+        <span class="hljs-type">int</span> temp;
+        <span class="hljs-built_in">scanf</span>(<span class="hljs-string">&quot;%d&quot;</span>, &amp;temp);
+        ball_time.<span class="hljs-built_in">push_back</span>(temp);
+    }
+
+    <span class="hljs-built_in">sort</span>(ball_time.<span class="hljs-built_in">begin</span>(),ball_time.<span class="hljs-built_in">end</span>());
+    
+    <span class="hljs-built_in">scanf</span>(<span class="hljs-string">&quot;%d&quot;</span>,&amp;t);
+    ball_time.<span class="hljs-built_in">push_back</span>(t);
+
+    
+    <span class="hljs-comment">/*
+    corridor[time][위치]
+    복도의 공 상태를 나타냄
+    0 : 공이 없음
+    1 : 오른쪽-&gt; 을 향하는 공이 존재
+    -1 : 왼쪽 &lt;- 을 향하는 공이 존재
+    2 : 양쪽 다 공이 있음(현재 부딪힌 상태)
+    corridor[t][0]이 처음, corridor[t][n]이 끝
+    [t][0]에는 무조건 오른쪽-&gt;
+    [t][n]에는 무조건 왼쪽 &lt;- 공만 존재하도록 하자!
+
+    sum : [t,t+1) 에서 생기는 충돌들
+    */</span>
+
+    <span class="hljs-type">int</span> time_now = <span class="hljs-number">0</span>;
+    
+    <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; ball_time.<span class="hljs-built_in">size</span>(); i++) {
+        <span class="hljs-comment">/*
+        일단 corridor에 공을 넣고, 그 다음에 시간에 따라서 collision에 더해보자
+        */</span>
+        time_now=ball_time[i];
+        <span class="hljs-keyword">if</span>(time_now==t) {
+            <span class="hljs-keyword">break</span>;
+        }
+        <span class="hljs-comment">//corridor[time_now+j][j]에다가 공을 추가</span>
+        <span class="hljs-comment">//물론 j&gt;n일때 반사한거 계산해야함</span>
+        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> j=<span class="hljs-number">0</span>; j&lt;n; j++) {        
+            <span class="hljs-type">int</span>* now_adding_balls = &amp;corridor[(time_now+j)%(<span class="hljs-number">2</span>*n)][j];
+            <span class="hljs-built_in">add_ball</span>(now_adding_balls,<span class="hljs-number">1</span>);
+            
+            <span class="hljs-keyword">if</span>(*(now_adding_balls+<span class="hljs-number">1</span>) == <span class="hljs-number">-1</span> || *(now_adding_balls+<span class="hljs-number">1</span>) == <span class="hljs-number">2</span>) 
+            <span class="hljs-comment">// nowaddingballs는 1 또는 2가 확정이니까 </span>
+            <span class="hljs-comment">//이 조건이 맞으면 일단 둘 사이에 무조건 충돌함</span>
+                sum[(time_now+j)%(<span class="hljs-number">2</span>*n)]++;
+            <span class="hljs-keyword">if</span>(*now_adding_balls==<span class="hljs-number">2</span>)
+            <span class="hljs-comment">//그리고 2면 또 충돌하겠지</span>
+                sum[(time_now+j)%(<span class="hljs-number">2</span>*n)]++;
+            <span class="hljs-comment">//범위를 좀 넘어갈 수 있지만, corridor를 충분히 크게 선언했고,</span>
+            <span class="hljs-comment">//0으로 초기화되어있으니 괜찮지 않을까</span>
+        
+        }    
+        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> j=n; j&lt;<span class="hljs-number">2</span>*n; j++) {
+            <span class="hljs-type">int</span>* now_adding_balls = &amp;corridor[(time_now+j)%(<span class="hljs-number">2</span>*n)][<span class="hljs-number">2</span>*n-j];
+            <span class="hljs-built_in">add_ball</span>(now_adding_balls,<span class="hljs-number">-1</span>);
+
+            <span class="hljs-keyword">if</span>(*(now_adding_balls<span class="hljs-number">-1</span>) == <span class="hljs-number">1</span> || *(now_adding_balls<span class="hljs-number">-1</span>) == <span class="hljs-number">2</span>)
+                sum[(time_now+j)%(<span class="hljs-number">2</span>*n)]++;
+            <span class="hljs-keyword">if</span>(*now_adding_balls==<span class="hljs-number">2</span>)
+                sum[(time_now+j)%(<span class="hljs-number">2</span>*n)]++;
+        }
+        
+        
+        <span class="hljs-comment">//이제 loop꼬다리 더하고, loop가 몇번 반복되냐 따라서 더하고 ㅇㅇ</span>
+        <span class="hljs-comment">/*
+        방금 공을 t1에서 던졌으면, 이제 새 공을 t2에 던질 때,
+        t1, t1+1 ... t2-1 까지 보면 되네
+        
+        */</span>
+        <span class="hljs-type">int</span> loop_sum=<span class="hljs-number">0</span>;
+        <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> j=<span class="hljs-number">0</span>; j&lt;<span class="hljs-number">2</span>*n; j++)
+            loop_sum += sum[j];
+
+        <span class="hljs-keyword">while</span>(time_now+<span class="hljs-number">2</span>*n&lt;=ball_time[i+<span class="hljs-number">1</span>]) {
+            collision += loop_sum;
+            time_now+=<span class="hljs-number">2</span>*n;
+        }
+
+        <span class="hljs-keyword">while</span>(time_now&lt;ball_time[i+<span class="hljs-number">1</span>]) {
+            collision+=sum[time_now%(<span class="hljs-number">2</span>*n)];
+            time_now++;
+        }
+
+
+    }
+    <span class="hljs-comment">//time_now==t에서, 이제 딱 2 갯수만 세면 됨</span>
+    <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; n; i++) {
+        <span class="hljs-keyword">if</span>(corridor[t%(<span class="hljs-number">2</span>*n)][i]==<span class="hljs-number">2</span>)
+            collision++;
+    }
+    
+    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%lld&quot;</span>,collision);
+
+    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+}
+</code></pre></div>
+</details>
+
+</div></article>
+</div>
+
+            <footer class="footer"></footer>
+        </main>
+    </div>
+
+    <!-- GoatCounter 방문자 집계 (쿠키 없음). 해시 라우팅이라 자동 집계는 끄고 script.js 의 trackPageview 가 직접 보낸다.
+         사이트 코드를 바꾸려면 아래 data-goatcounter 주소의 sasak2 부분만 고치면 된다. -->
+    <script>window.goatcounter = { no_onload: true };</script>
+    <script data-goatcounter="https://sasak2.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- highlight.js 기본 묶음에 없는 언어(전자공학/임베디드용) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/verilog.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/vhdl.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/armasm.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/x86asm.min.js"></script>
+    <script src="script.js?v=56095042"></script>
+    <script src="showcase.js?v=56095042"></script>
+    <script src="blog.js?v=56095042"></script>
+</body>
+</html>
