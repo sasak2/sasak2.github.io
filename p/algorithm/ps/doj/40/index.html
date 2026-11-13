@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="https://unpkg.com/@tabler/icons@2.44.0/tabler-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-    <link rel="stylesheet" href="styles.css?v=56095042">
+    <link rel="stylesheet" href="styles.css?v=d8919923">
     <link rel="canonical" href="https://sasak2.github.io/p/algorithm/ps/doj/40/">
     <meta property="og:type" content="article">
     <meta property="og:title" content="DOJ #40 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 (collision)">
@@ -74,7 +74,7 @@
         <div id="blog-list"></div>
     </div>
 </div>
-<article id="blog-post" class="post"><nav class="blog-crumb post-crumb"><a href="#blog">블로그</a> / <a href="#blog/folder/algorithm">알고리즘</a> / <a href="#blog/folder/algorithm/ps">PS</a> / <a href="#blog/folder/algorithm/ps/doj">DOJ</a></nav><div class="blog-date">2026.11.14</div><h3 class="post-title">DOJ #40 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 (collision)</h3><div class="tag-row tag-row-sm"><a class="tag tag-link" href="#blog/tag/DOJ">DOJ</a><a class="tag tag-link" href="#blog/tag/PS">PS</a></div><details class="toc" open><summary class="toc-title">목차</summary><ul class="toc-list"><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%EB%93%A4%EC%96%B4%EA%B0%80%EB%A9%B0">들어가며</a></li><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%EB%AC%B8%EC%A0%9C-%EC%84%A4%EB%AA%85">문제 설명</a></li><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%EB%AC%B8%EC%A0%9C-%ED%92%80%EC%9D%B4">문제 풀이</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-1-%EC%A0%95%EC%88%98%EB%A1%9C-%ED%91%9C%ED%98%84%ED%95%A0-%EC%88%98-%EC%9E%88%EB%8B%A4">1. 정수로 표현할 수 있다</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-2-%EB%B9%84%EB%91%98%EA%B8%B0%EC%A7%91%EC%9D%98-%EC%9B%90%EB%A6%AC%EC%99%80-%EA%B3%B5%EC%9D%98-%EA%B0%9C%EC%88%98">2. 비둘기집의 원리와 공의 개수</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-3-%EA%B3%B5-%ED%86%B5%EA%B3%BC-%EB%85%BC%EB%A6%AC">3. 공 통과 논리</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-4-%EB%A3%A8%ED%94%84-%EB%B0%9C%EA%B2%AC">4. 루프 발견</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-5-time-table%EB%A1%9C-%EA%BC%AC%EB%8B%A4%EB%A6%AC-%EA%B5%AC%EA%B0%84%EC%9D%84-on%EC%9C%BC%EB%A1%9C-%EA%B3%84%EC%82%B0%ED%95%98%EC%9E%90">5. time table로 꼬다리 구간을 O(N)으로 계산하자</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-6-sum%EC%9D%98-%EC%9E%90%EC%84%B8%ED%95%9C-%EA%B5%AC%ED%98%84-%EB%B0%8F-tt1-%EA%B5%AC%EA%B0%84-%EC%A0%95%EC%9D%98">6. sum의 자세한 구현 및 [t,t+1) 구간 정의</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-7-%EC%BD%94%EB%93%9C-%EC%A0%84%EB%AC%B8">7. 코드 전문</a></li><li class="toc-l3"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-8-%EC%B6%94%EA%B0%80%EC%A0%81%EC%9D%B8-%EC%9E%90%ED%88%AC%EB%A6%AC-%EB%85%BC%EC%A6%9D">8. 추가적인 자투리 논증</a></li><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%ED%92%80%EC%9D%B4-%ED%9B%84%EA%B8%B0-%EB%B0%8F-%EB%82%9C%EC%9D%B4%EB%8F%84">풀이 후기 및 난이도</a></li><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%EB%B6%80%EB%A1%9D">부록</a></li></ul></details><div class="post-body">
+<article id="blog-post" class="post"><nav class="blog-crumb post-crumb"><a href="#blog">블로그</a> / <a href="#blog/folder/algorithm">알고리즘</a> / <a href="#blog/folder/algorithm/ps">PS</a> / <a href="#blog/folder/algorithm/ps/doj">DOJ</a></nav><div class="blog-date">2026.11.14</div><h3 class="post-title">DOJ #40 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 퉁 (collision)</h3><div class="tag-row tag-row-sm"><a class="tag tag-link" href="#blog/tag/DOJ">DOJ</a><a class="tag tag-link" href="#blog/tag/PS">PS</a></div><details class="toc" open><summary class="toc-title">목차</summary><ul class="toc-list"><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%EB%93%A4%EC%96%B4%EA%B0%80%EB%A9%B0">들어가며</a></li><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%EB%AC%B8%EC%A0%9C-%EC%84%A4%EB%AA%85">문제 설명</a></li><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%EB%AC%B8%EC%A0%9C-%ED%92%80%EC%9D%B4">문제 풀이</a></li><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%ED%92%80%EC%9D%B4-%ED%9B%84%EA%B8%B0-%EB%B0%8F-%EB%82%9C%EC%9D%B4%EB%8F%84">풀이 후기 및 난이도</a></li><li class="toc-l2"><a class="toc-link" href="#blog/post/algorithm/ps/doj/40?h=sec-%EB%B6%80%EB%A1%9D">부록</a></li></ul></details><div class="post-body">
 <h2 id="sec-들어가며">들어가며<a class="h-anchor" href="#sec-%EB%93%A4%EC%96%B4%EA%B0%80%EB%A9%B0" title="이 제목의 링크">#</a></h2>
 <p>어느새 백준이 섭종한지 198일이 지났습니다.(이 문제를 풀기 시작한 11월 12일 기준)<br>PS를 하고싶어도 못하고 있었는데, DOJ라는 사이트가 있단걸 알게되었습니다!!</p>
 <p>그래서 오늘부터! 꾸준히 댁준<del>(BOJ가 백준이니 DOJ는 댁준임 깔깔~)</del>을 해보자는 목표를 세웠습니다<br>스트릭을 꾸준히 잇지는 못하더라도, 한 주에 두세 개정도 골드~플레티넘 문제를 꾸준히 풀고, 사고 과정, 막힌 점, 필요한 알고리즘/함수 사용법 등등에 대한 기록을 남기는게 목표입니다</p>
@@ -98,6 +98,8 @@
 </blockquote>
 <hr>
 <h2 id="sec-문제-풀이">문제 풀이<a class="h-anchor" href="#sec-%EB%AC%B8%EC%A0%9C-%ED%92%80%EC%9D%B4" title="이 제목의 링크">#</a></h2>
+<!-- toc:off -->
+
 <p>목차</p>
 <ol>
 <li>정수로 표현할 수 있다</li>
@@ -325,6 +327,8 @@
 <h4>5. 시간 구간 정의와 마지막 시점 충돌 횟수 세기</h4>
 <p>앞서 sum의 시간 구간을 [t,t+1) 까지로 정의했었습니다,<br>반복문을 모두 돌면 [0,T) 범위의 충돌만 계산하여서 시간=T 부분을 더하지 않게 됩니다.<br>시간이 정확히 T일 때는, 한 위치에서 두 공이 충돌하였을 때입니다.<br>즉, 상태가 2인 위치의 개수를 세서 더하면 됩니다.</p>
 <p>[t,t+1)로 시간을 정의한 이유도 있습니다.<br>원래는 (t-1,t] 까지 충돌한 횟수로 정의를 하려고 했었는데, 구현을 하는 부분에서 코너케이스가 많이 생기고, 배열도 범위를 넘는 부분을 참조하는것을 방지하기위해 조건문을 더 추가해야 하는 등, 코드가 더러워졌습니다.<br>그래서 [t,t+1)로 정의를 바꾸게 되었습니다.</p>
+<!-- toc:on -->
+
 <h2 id="sec-풀이-후기-및-난이도">풀이 후기 및 난이도<a class="h-anchor" href="#sec-%ED%92%80%EC%9D%B4-%ED%9B%84%EA%B8%B0-%EB%B0%8F-%EB%82%9C%EC%9D%B4%EB%8F%84" title="이 제목의 링크">#</a></h2>
 <p>문제의 핵심 풀이를 떠올리는 데에는 1시간 30분 정도가 걸렸습니다.<br>그리고 다음 날 구현해 첫 제출까지 2시간정도(수업시간에 딴짓으로 ㅋㅋㅋ 한거라서 조금 더 시간이 걸렸습니다)걸렸고,<br>이후 정렬을 하지 않은것이 문제인거를 깨닫고 수정해 제출해 마침내 AC를 받았습니다.</p>
 <p><img src="/posts/img/doj40/08.png" alt="AC 받은 제출 결과"></p>
@@ -493,8 +497,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/vhdl.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/armasm.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/x86asm.min.js"></script>
-    <script src="script.js?v=56095042"></script>
-    <script src="showcase.js?v=56095042"></script>
-    <script src="blog.js?v=56095042"></script>
+    <script src="script.js?v=d8919923"></script>
+    <script src="showcase.js?v=d8919923"></script>
+    <script src="blog.js?v=d8919923"></script>
 </body>
 </html>

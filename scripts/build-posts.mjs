@@ -353,15 +353,21 @@ function renderPostHtml(raw) {
     });
 
     // 제목에 id 와 # 링크를 달고, 제목이 3개 이상이면 목차를 만든다
+    // <!-- toc:off --> 와 <!-- toc:on --> 사이의 제목은 목차에서 뺀다 (스포일러 가리기용, blog.js 와 같은 규칙)
     const used = new Set();
     const items = [];
-    html = html.replace(/<h([23])>([\s\S]*?)<\/h\1>/g, (m, level, inner) => {
+    let tocOff = false;
+    html = html.replace(/<!--\s*toc:(off|on)\s*-->|<h([23])>([\s\S]*?)<\/h\2>/g, (m, mark, level, inner) => {
+        if (mark) {
+            tocOff = mark === 'off';
+            return m;
+        }
         const text = inner.replace(/<span class="katex-mathml">[\s\S]*?<\/math><\/span>/g, '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
         const base = decodeEntities(text).toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, '').trim().replace(/\s+/g, '-') || 'section';
         let id = 'sec-' + base;
         for (let n = 2; used.has(id); n++) id = 'sec-' + base + '-' + n;
         used.add(id);
-        items.push({ id, text, level: Number(level) });
+        if (!tocOff) items.push({ id, text, level: Number(level) });
         return `<h${level} id="${id}">${inner}<a class="h-anchor" href="#${encodeURIComponent(id)}" title="이 제목의 링크">#</a></h${level}>`;
     });
     const toc =

@@ -393,6 +393,20 @@ function openBlog(folder) {
 
     function buildToc(body, slug) {
         const heads = [...body.querySelectorAll('h2, h3')];
+        // 글에서 <!-- toc:off --> 와 <!-- toc:on --> 사이에 있는 제목은 목차에서 뺀다 (스포일러 가리기용).
+        // 제목의 id 와 # 링크는 그대로 단다. (scripts/build-posts.mjs 도 같은 규칙)
+        const hidden = new Set();
+        let tocOff = false;
+        const walker = document.createTreeWalker(body, NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_ELEMENT);
+        for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+            if (n.nodeType === Node.COMMENT_NODE) {
+                const mark = n.nodeValue.trim();
+                if (mark === 'toc:off') tocOff = true;
+                else if (mark === 'toc:on') tocOff = false;
+            } else if (tocOff && (n.tagName === 'H2' || n.tagName === 'H3')) {
+                hidden.add(n);
+            }
+        }
         const used = new Set();
         const items = [];
         heads.forEach((h) => {
@@ -406,7 +420,7 @@ function openBlog(folder) {
             a.href = anchorHash(slug, id);
             a.title = '이 제목의 링크 복사';
             h.appendChild(a);
-            items.push({ id, text, level: h.tagName === 'H3' ? 3 : 2 });
+            if (!hidden.has(h)) items.push({ id, text, level: h.tagName === 'H3' ? 3 : 2 });
         });
         if (items.length < 3) return null;
         const det = el('details', 'toc');
