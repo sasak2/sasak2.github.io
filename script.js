@@ -1,6 +1,9 @@
 document.documentElement.classList.add('js');
 
 const TABS = ['main', 'links', 'history', 'work', 'blog'];
+// 브라우저 탭 제목. 블로그 글은 blog.js 가 글 제목으로 바꾼다.
+const SITE_TITLE = 'sasak2 포트폴리오 | 김현민';
+const TAB_TITLES = { main: SITE_TITLE, links: '링크 | sasak2', history: '이력 | sasak2', work: '작업 | sasak2', blog: '블로그 | sasak2' };
 const loadedSections = new Set();
 // 섹션 HTML이 처음 로드된 직후 실행할 초기화 함수. showcase.js 등이 등록한다.
 const sectionInit = {};
@@ -81,6 +84,7 @@ async function route() {
         setActiveLink(link => link.dataset.tab === tab);
     }
 
+    document.title = TAB_TITLES[tab] || SITE_TITLE;
     if (tab === 'blog' && window.blogRoute) await window.blogRoute(rest);
     if (mine !== routeSeq) return;
 

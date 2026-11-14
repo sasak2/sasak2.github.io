@@ -543,6 +543,20 @@ function openBlog(folder) {
             });
             box.appendChild(row);
         }
+        // 공유용 주소: 디스코드, 카카오톡 같은 곳은 주소의 # 뒤를 읽지 못해서, 제목과 요약이 담긴 글 전용 주소(/p/...)를 복사해 준다.
+        const share = el('button', 'post-share', '공유 링크 복사');
+        share.type = 'button';
+        share.title = '디스코드 등에서 제목과 요약이 미리보기로 뜨는 주소를 복사해요';
+        share.addEventListener('click', () => {
+            copyText(location.origin + '/p/' + pathToHash(post.slug) + '/').then(
+                () => {
+                    share.textContent = '복사했어요';
+                    setTimeout(() => (share.textContent = '공유 링크 복사'), 1400);
+                },
+                () => {}
+            );
+        });
+        box.appendChild(el('div', 'post-share-row')).appendChild(share);
         const body = el('div', 'post-body');
         box.appendChild(body);
         body.textContent = '불러오는 중...';
@@ -610,6 +624,7 @@ function openBlog(folder) {
                 post.append(back, el('div', 'blog-empty', '글을 찾을 수 없어요.'));
                 return;
             }
+            document.title = found.title + ' | sasak2';
             await renderPost(post, data, found, query.get('h'));
             return;
         }

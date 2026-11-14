@@ -1,14 +1,14 @@
 :root {
-    --color-background-primary: #0a0a0b;
-    --color-background-secondary: #141416;
-    --color-background-tertiary: #1d1d20;
-    --color-text-primary: #f4f4f5;
+    --color-background-primary: #18191c;
+    --color-background-secondary: #202125;
+    --color-background-tertiary: #28292e;
+    --color-text-primary: #e4e4e7;
     --color-text-secondary: #a1a1aa;
-    --color-text-tertiary: #71717a;
-    --color-border-primary: #2e2e33;
-    --color-border-secondary: #232327;
-    --color-border-tertiary: #1a1a1d;
-    --color-accent: #f4f4f5;
+    --color-text-tertiary: #8a8a93;
+    --color-border-primary: #34353b;
+    --color-border-secondary: #28292e;
+    --color-border-tertiary: #202125;
+    --color-accent: #e4e4e7;
     --font-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono: 'Courier Prime', 'Noto Sans KR', 'SF Mono', Monaco, Consolas, monospace;
     --border-radius-sm: 4px;
@@ -1231,6 +1231,26 @@ a.tag-link:hover {
 }
 
 .code-copy:hover {
+    color: var(--color-text-primary);
+    border-color: var(--color-text-tertiary);
+}
+
+.post-share-row {
+    margin-top: 10px;
+}
+
+.post-share {
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    background: transparent;
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--border-radius-sm);
+    padding: 3px 10px;
+    cursor: pointer;
+}
+
+.post-share:hover {
     color: var(--color-text-primary);
     border-color: var(--color-text-tertiary);
 }
