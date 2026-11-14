@@ -1,13 +1,13 @@
 :root {
-    --color-background-primary: #18191c;
-    --color-background-secondary: #202125;
-    --color-background-tertiary: #28292e;
+    --color-background-primary: #121314;
+    --color-background-secondary: #191a1b;
+    --color-background-tertiary: #202122;
     --color-text-primary: #e4e4e7;
     --color-text-secondary: #a1a1aa;
     --color-text-tertiary: #8a8a93;
-    --color-border-primary: #34353b;
-    --color-border-secondary: #28292e;
-    --color-border-tertiary: #202125;
+    --color-border-primary: #2a2b2d;
+    --color-border-secondary: #202122;
+    --color-border-tertiary: #191a1b;
     --color-accent: #e4e4e7;
     --font-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono: 'Courier Prime', 'Noto Sans KR', 'SF Mono', Monaco, Consolas, monospace;
