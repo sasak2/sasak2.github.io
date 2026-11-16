@@ -8,6 +8,7 @@ on:
       - 'scripts/build-posts.mjs'
       - 'package.json'
       - 'package-lock.json'
+      - 'index.html'
       - 'styles.css'
       - 'script.js'
       - 'showcase.js'
@@ -30,16 +31,19 @@ jobs:
           cache: npm
       - name: Install build dependencies (marked, katex, highlight.js)
         run: npm ci
-      - name: Generate posts.json, search.json, sitemap.xml, post pages and asset version
+      - name: Generate posts.json, search.json, sitemap.xml, pages and asset version
         run: node scripts/build-posts.mjs
       - name: Commit generated files if changed
+        env:
+          # 빌드 스크립트가 만드는 파일과 폴더 (주소별 페이지: blog/ history/ work/ links/ p/ 404.html)
+          GENERATED: posts.json search.json index.html sitemap.xml 404.html blog history work links p
         run: |
-          if [ -z "$(git status --porcelain -- posts.json search.json index.html sitemap.xml p)" ]; then
+          if [ -z "$(git status --porcelain -- $GENERATED)" ]; then
             echo "변경 없음"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A posts.json search.json index.html sitemap.xml p
+          git add -A -- $GENERATED
           git commit -m "chore: update posts.json and asset version"
           git push

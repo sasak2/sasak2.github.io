@@ -2,6 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <!-- 주소가 /blog/post/... 처럼 깊어져도 styles.css, posts/img/... 같은 상대 경로가 사이트 루트 기준으로 풀리게 한다 -->
+    <base href="/">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>sasak2 포트폴리오 | 김현민</title>
     <meta name="description" content="알고리즘과 전자공학에 관심 있는 경북대 전자공학부 1학년 김현민의 포트폴리오입니다.">
@@ -16,30 +18,30 @@
     <link rel="stylesheet" href="https://unpkg.com/@tabler/icons@2.44.0/tabler-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-    <link rel="stylesheet" href="styles.css?v=67bf35da">
+    <link rel="stylesheet" href="styles.css?v=ac7a2c30">
 </head>
 <body>
     <div class="layout">
         <aside class="sidebar">
-            <a class="side-brand" href="#main/intro">sasak2</a>
+            <a class="side-brand" href="/">sasak2</a>
             <nav class="side-nav" aria-label="사이트 메뉴">
                 <div class="side-group">
                     <div class="side-label">섹션</div>
-                    <a class="side-link" href="#main/intro" data-go="intro">소개</a>
-                    <a class="side-link" href="#main/circuit" data-go="circuit">전자공학</a>
-                    <a class="side-link" href="#main/terminal" data-go="terminal">해킹 / 보안</a>
-                    <a class="side-link" href="#main/bfs" data-go="bfs">알고리즘</a>
-                    <a class="side-link" href="#main/biped" data-go="biped">메이커</a>
-                    <a class="side-link" href="#main/chess" data-go="chess">체스</a>
-                    <a class="side-link" href="#main/bass" data-go="bass">베이스</a>
+                    <a class="side-link" href="/#main/intro" data-go="intro">소개</a>
+                    <a class="side-link" href="/#main/circuit" data-go="circuit">전자공학</a>
+                    <a class="side-link" href="/#main/terminal" data-go="terminal">해킹 / 보안</a>
+                    <a class="side-link" href="/#main/bfs" data-go="bfs">알고리즘</a>
+                    <a class="side-link" href="/#main/biped" data-go="biped">메이커</a>
+                    <a class="side-link" href="/#main/chess" data-go="chess">체스</a>
+                    <a class="side-link" href="/#main/bass" data-go="bass">베이스</a>
                 </div>
                 <div class="side-sep" aria-hidden="true"></div>
                 <div class="side-group">
                     <div class="side-label">페이지</div>
-                    <a class="side-link" href="#history" data-tab="history">이력</a>
-                    <a class="side-link" href="#work" data-tab="work">작업</a>
-                    <a class="side-link" href="#blog" data-tab="blog">블로그</a>
-                    <a class="side-link" href="#links" data-tab="links">링크</a>
+                    <a class="side-link" href="/history/" data-tab="history">이력</a>
+                    <a class="side-link" href="/work/" data-tab="work">작업</a>
+                    <a class="side-link" href="/blog/" data-tab="blog">블로그</a>
+                    <a class="side-link" href="/links/" data-tab="links">링크</a>
                 </div>
             </nav>
         </aside>
@@ -57,7 +59,7 @@
         </main>
     </div>
 
-    <!-- GoatCounter 방문자 집계 (쿠키 없음). 해시 라우팅이라 자동 집계는 끄고 script.js 의 trackPageview 가 직접 보낸다.
+    <!-- GoatCounter 방문자 집계 (쿠키 없음). 페이지를 새로 불러오지 않고 화면만 바꾸는 방식이라 자동 집계는 끄고 script.js 의 trackPageview 가 직접 보낸다.
          사이트 코드를 바꾸려면 아래 data-goatcounter 주소의 sasak2 부분만 고치면 된다. -->
     <script>window.goatcounter = { no_onload: true };</script>
     <script data-goatcounter="https://sasak2.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
@@ -70,8 +72,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/vhdl.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/armasm.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/x86asm.min.js"></script>
-    <script src="script.js?v=67bf35da"></script>
-    <script src="showcase.js?v=67bf35da"></script>
-    <script src="blog.js?v=67bf35da"></script>
+    <script src="script.js?v=ac7a2c30"></script>
+    <script src="showcase.js?v=ac7a2c30"></script>
+    <script src="blog.js?v=ac7a2c30"></script>
 </body>
 </html>

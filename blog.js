@@ -1,6 +1,7 @@
 // 블로그: posts.json 으로 폴더 트리/목록을 그리고, 글은 posts/<경로>.md 를 불러와 렌더링한다.
 // 화면: 왼쪽 폴더 트리(항상 펼침) + 오른쪽 글 목록(최신순). 폴더를 누르면 그 아래 모든 글이 보인다.
-// 주소 형식: #blog(전체글)  /  #blog/folder/<폴더경로>  /  #blog/tag/<태그>  /  #blog/post/<폴더경로>/<글>
+// 주소 형식: /blog/(전체글)  /  /blog/folder/<폴더경로>/  /  /blog/tag/<태그>/  /  /blog/post/<폴더경로>/<글>/
+// 주소를 읽고 화면을 바꾸는 일은 script.js 가 하고, 여기서는 blogRoute 로 넘겨받은 경로 조각만 본다.
 
 let blogDataPromise = null;
 function getBlogData() {
@@ -25,13 +26,21 @@ function getPosts() {
     return getBlogData().then((d) => d.posts);
 }
 
-function pathToHash(path) {
+function encodePath(path) {
     return path.split('/').map(encodeURIComponent).join('/');
 }
 
+// 블로그 안의 주소 만들기. 글 주소에 제목 id 를 주면 그 제목 위치(#sec-...)까지 붙인다.
+const blogHref = {
+    home: '/blog/',
+    folder: (path) => '/blog/folder/' + encodePath(path) + '/',
+    tag: (tag) => '/blog/tag/' + encodeURIComponent(tag) + '/',
+    post: (slug, id) => '/blog/post/' + encodePath(slug) + '/' + (id ? '#' + encodeURIComponent(id) : ''),
+};
+
 // 폴더 경로(예: "hacking")를 주면 그 폴더 화면으로, 없으면 블로그 첫 화면으로 이동
 function openBlog(folder) {
-    location.hash = folder ? '#blog/folder/' + pathToHash(folder) : '#blog';
+    navigate(folder ? blogHref.folder(folder) : blogHref.home);
 }
 
 (function () {
@@ -159,7 +168,7 @@ function openBlog(folder) {
         const wrap = el('div', 'chip-row');
         tags.forEach(([t, n]) => {
             const a = el('a', 'chip' + (t === active ? ' active' : ''));
-            a.href = '#blog/tag/' + encodeURIComponent(t);
+            a.href = blogHref.tag(t);
             a.append(t, el('span', 'chip-n', String(n)));
             wrap.appendChild(a);
         });
@@ -180,18 +189,18 @@ function openBlog(folder) {
             }
         };
         const parts = path ? path.split('/') : [];
-        add('블로그', parts.length || lastLabel || linkLast ? '#blog' : null);
+        add('블로그', parts.length || lastLabel || linkLast ? blogHref.home : null);
         parts.forEach((_, i) => {
             const sub = parts.slice(0, i + 1).join('/');
             const last = i === parts.length - 1 && !lastLabel && !linkLast;
-            add(folderTitle(data, sub), last ? null : '#blog/folder/' + pathToHash(sub));
+            add(folderTitle(data, sub), last ? null : blogHref.folder(sub));
         });
         if (lastLabel) add(lastLabel, null);
     }
 
     function postItem(p, data, showFolder, snippet) {
         const a = el('a', 'blog-item');
-        a.href = '#blog/post/' + pathToHash(p.slug);
+        a.href = blogHref.post(p.slug);
         if (showFolder && p.folder) {
             const names = p.folder.split('/').map((_, i, arr) => folderTitle(data, arr.slice(0, i + 1).join('/')));
             a.appendChild(el('div', 'blog-folder', names.join(' > ')));
@@ -264,14 +273,14 @@ function openBlog(folder) {
             if (on) a.setAttribute('aria-current', 'page');
             box.appendChild(a);
         };
-        row('전체글', data.posts.length, '#blog', 0, selected === null);
+        row('전체글', data.posts.length, blogHref.home, 0, selected === null);
         const walkTree = (parent, depth) => {
             data.folders
                 .filter((f) => parentOf(f.path) === parent)
                 .sort(byOrder)
                 .forEach((f) => {
                     const n = data.posts.filter((p) => inFolder(p, f.path)).length;
-                    row(f.title, n, '#blog/folder/' + pathToHash(f.path), depth, selected === f.path);
+                    row(f.title, n, blogHref.folder(f.path), depth, selected === f.path);
                     walkTree(f.path, depth + 1);
                 });
         };
@@ -377,17 +386,17 @@ function openBlog(folder) {
     }
 
     // ---- 제목 앵커와 목차 ----
-    // 주소가 해시 라우팅이라 #제목 은 쓸 수 없어서, 글 주소 뒤에 ?h=<제목id> 를 붙인다.
+    // 제목 위치는 글 주소 뒤에 #<제목id> 를 붙인다. (예전 주소의 ?h=<제목id> 는 script.js 가 이 형식으로 바꿔 준다)
     let currentSlug = '';
     let pendingAnchor = null;
+    let renderedSlug = ''; // 지금 화면에 다 그려져 있는 글 (같은 글을 다시 그리지 않으려고 기억한다)
+    let renderSeq = 0;
 
-    function anchorHash(slug, id) {
-        return '#blog/post/' + pathToHash(slug) + (id ? '?h=' + encodeURIComponent(id) : '');
-    }
-
+    // 제목의 글자만 뽑는다 (목차와 제목 id 에 쓴다). 수식은 화면용(.katex-html)과 원문 주석(annotation)을 빼고
+    // MathML 쪽 글자만 남겨서 같은 글자가 두 번 들어가지 않게 한다. (scripts/build-posts.mjs 의 headingPlain 과 같은 규칙)
     function headingText(h) {
         const clone = h.cloneNode(true);
-        clone.querySelectorAll('.katex-html, .h-anchor').forEach((n) => n.remove());
+        clone.querySelectorAll('.katex-html, .h-anchor, annotation').forEach((n) => n.remove());
         return clone.textContent.replace(/\s+/g, ' ').trim();
     }
 
@@ -417,7 +426,7 @@ function openBlog(folder) {
             used.add(id);
             h.id = id;
             const a = el('a', 'h-anchor', '#');
-            a.href = anchorHash(slug, id);
+            a.href = blogHref.post(slug, id);
             a.title = '이 제목의 링크 복사';
             h.appendChild(a);
             if (!hidden.has(h)) items.push({ id, text, level: h.tagName === 'H3' ? 3 : 2 });
@@ -430,7 +439,7 @@ function openBlog(folder) {
         items.forEach((it) => {
             const li = el('li', 'toc-l' + it.level);
             const a = el('a', 'toc-link', it.text);
-            a.href = anchorHash(slug, it.id);
+            a.href = blogHref.post(slug, it.id);
             a.dataset.id = it.id;
             li.appendChild(a);
             list.appendChild(li);
@@ -439,21 +448,30 @@ function openBlog(folder) {
         return det;
     }
 
-    function jumpTo(id, replace) {
+    function jumpTo(id, instant) {
         const target = id && document.getElementById(id);
         if (!target) return false;
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
-        if (replace) history.replaceState(null, '', anchorHash(currentSlug, id));
+        target.scrollIntoView({ behavior: reduced || instant ? 'auto' : 'smooth', block: 'start' });
         return true;
     }
+
+    // 보고 있는 글 안에서 제목 위치만 바뀌었을 때 script.js 가 호출한다. 그 제목이 없으면 false.
+    window.blogJump = function (id) {
+        const root = document.getElementById('tab-blog');
+        const post = root && root.querySelector('#blog-post');
+        if (!post || post.hidden || !renderedSlug) return false;
+        return jumpTo(id);
+    };
 
     document.addEventListener('click', (e) => {
         const a = e.target.closest && e.target.closest('a.h-anchor, .toc-link');
         if (!a) return;
         e.preventDefault();
         const id = a.dataset.id || (a.parentElement && a.parentElement.id);
-        if (!jumpTo(id, true)) return;
+        if (!jumpTo(id)) return;
+        // 주소 표시줄만 그 제목의 주소로 바꾼다 (뒤로가기 기록은 늘리지 않는다)
+        replaceUrl(a.getAttribute('href'));
         if (a.classList.contains('h-anchor')) {
             copyText(location.origin + location.pathname + location.hash).then(() => {
                 a.classList.add('copied');
@@ -462,13 +480,50 @@ function openBlog(folder) {
         }
     });
 
-    // 라우팅이 끝나 맨 위로 스크롤된 뒤, 주소에 ?h= 가 있으면 그 제목으로 이동 (script.js 가 호출)
-    window.blogAfterRoute = function () {
+    // 라우팅이 끝난 뒤, 주소에 #<제목id> 가 있으면 그 제목으로 이동 (script.js 가 호출)
+    // initial: 미리 그려진 글 페이지를 처음 연 경우. 브라우저가 이미 그 제목 위치를 잡았으므로 부드러운 이동 없이 위치만 맞추고,
+    // 새로고침이나 뒤로가기로 들어온 경우에는 브라우저가 복원한 위치를 그대로 둔다.
+    window.blogAfterRoute = function (initial) {
         if (!pendingAnchor) return;
         const id = pendingAnchor;
         pendingAnchor = null;
-        requestAnimationFrame(() => jumpTo(id, false));
+        if (initial) {
+            const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+            if (nav && nav.type !== 'navigate') return;
+        }
+        requestAnimationFrame(() => {
+            if (jumpTo(id, initial)) keepAnchored(id);
+        });
     };
+
+    // 주소의 #<제목id> 로 들어온 경우, 제목 위쪽의 사진이나 글꼴이 늦게 떠서 본문 높이가 바뀌면 제목이 화면에서 밀려난다.
+    // 사용자가 직접 화면을 움직이기 전까지, 잠깐 동안(최대 10초) 본문 높이가 바뀔 때마다 위치를 다시 맞춘다.
+    let anchorWatch = null;
+    function keepAnchored(id) {
+        if (anchorWatch) anchorWatch.abort();
+        const target = document.getElementById(id);
+        const body = target && target.closest('.post-body');
+        if (!body || !window.ResizeObserver) return;
+        const watch = (anchorWatch = new AbortController());
+        let started = false;
+        const observer = new ResizeObserver(() => {
+            if (!started) {
+                started = true; // 지켜보기 시작할 때 한 번 불리는 것은 건너뛴다
+                return;
+            }
+            if (document.getElementById(id) === target) jumpTo(id, true);
+            else watch.abort();
+        });
+        observer.observe(body);
+        const timer = setTimeout(() => watch.abort(), 10000);
+        watch.signal.addEventListener('abort', () => {
+            observer.disconnect();
+            clearTimeout(timer);
+        });
+        ['wheel', 'touchstart', 'keydown', 'mousedown'].forEach((type) => {
+            window.addEventListener(type, () => watch.abort(), { signal: watch.signal, passive: true });
+        });
+    }
 
     function dateLabel(post) {
         let t = post.date.replace(/-/g, '.');
@@ -492,7 +547,7 @@ function openBlog(folder) {
                 return;
             }
             const a = el('a', 'post-nav-item ' + cls);
-            a.href = '#blog/post/' + pathToHash(p.slug);
+            a.href = blogHref.post(p.slug);
             a.appendChild(el('span', 'post-nav-label', label));
             a.appendChild(el('span', 'post-nav-title', p.title));
             nav.appendChild(a);
@@ -525,30 +580,49 @@ function openBlog(folder) {
         }
     }
 
+    // 본문 안의 # 링크를 글 주소 기준으로 바꾼다.
+    // (index.html 에 <base href="/"> 가 있어서 그대로 두면 #제목 링크가 메인 페이지의 # 주소로 풀린다)
+    //   #blog/post/... 같은 예전 형식의 사이트 안 링크 -> 새 경로 주소,  그 밖의 #이름 -> 이 글 주소 + #이름
+    function fixHashLinks(body, slug) {
+        body.querySelectorAll('a[href^="#"]').forEach((a) => {
+            const raw = a.getAttribute('href');
+            if (raw.length < 2) return;
+            if (raw === '#main' || raw.startsWith('#main/')) a.setAttribute('href', '/' + raw);
+            else a.setAttribute('href', legacyHashToPath(raw) || blogHref.post(slug) + raw);
+        });
+    }
+
     async function renderPost(box, data, post, anchor) {
+        const mine = ++renderSeq;
         currentSlug = post.slug;
         pendingAnchor = anchor || null;
-        box.replaceChildren();
+        renderedSlug = '';
+        // 빌드 때 미리 그려 둔 글 페이지(blog/post/<글>/)를 처음 연 경우에는 화면이 비었다가 다시 채워지지 않게,
+        // 새 내용을 화면 밖에서 다 만든 뒤 한 번에 바꿔 끼운다.
+        const swap = box.dataset.prerendered === post.slug;
+        delete box.dataset.prerendered;
+        const out = swap ? document.createDocumentFragment() : box;
+        if (!swap) box.replaceChildren();
         const crumb = el('nav', 'blog-crumb post-crumb');
         renderCrumb(crumb, data, post.unlisted ? '' : post.folder, null, true);
-        box.appendChild(crumb);
-        box.appendChild(el('div', 'blog-date', dateLabel(post)));
-        box.appendChild(el('h3', 'post-title', post.title));
+        out.appendChild(crumb);
+        out.appendChild(el('div', 'blog-date', dateLabel(post)));
+        out.appendChild(el('h3', 'post-title', post.title));
         if (post.tags.length) {
             const row = el('div', 'tag-row tag-row-sm');
             post.tags.forEach((t) => {
                 const a = el('a', 'tag tag-link', t);
-                a.href = '#blog/tag/' + encodeURIComponent(t);
+                a.href = blogHref.tag(t);
                 row.appendChild(a);
             });
-            box.appendChild(row);
+            out.appendChild(row);
         }
-        // 공유용 주소: 디스코드, 카카오톡 같은 곳은 주소의 # 뒤를 읽지 못해서, 제목과 요약이 담긴 글 전용 주소(/p/...)를 복사해 준다.
+        // 글 주소 복사 버튼. 주소 표시줄의 주소와 같고, 디스코드나 카카오톡 등에 붙이면 글 제목과 요약이 미리보기로 뜬다.
         const share = el('button', 'post-share', '공유 링크 복사');
         share.type = 'button';
-        share.title = '디스코드 등에서 제목과 요약이 미리보기로 뜨는 주소를 복사해요';
+        share.title = '이 글의 주소를 복사해요 (붙여 넣으면 제목과 요약이 미리보기로 떠요)';
         share.addEventListener('click', () => {
-            copyText(location.origin + '/p/' + pathToHash(post.slug) + '/').then(
+            copyText(location.origin + blogHref.post(post.slug)).then(
                 () => {
                     share.textContent = '복사했어요';
                     setTimeout(() => (share.textContent = '공유 링크 복사'), 1400);
@@ -556,33 +630,41 @@ function openBlog(folder) {
                 () => {}
             );
         });
-        box.appendChild(el('div', 'post-share-row')).appendChild(share);
+        out.appendChild(el('div', 'post-share-row')).appendChild(share);
         const body = el('div', 'post-body');
-        box.appendChild(body);
+        out.appendChild(body);
         body.textContent = '불러오는 중...';
 
         try {
             const res = await fetch('posts/' + post.slug.split('/').map(encodeURIComponent).join('/') + '.md', { cache: 'no-cache' });
             if (!res.ok) throw new Error(res.status);
             const md = stripFrontMatter(await res.text());
+            if (mine !== renderSeq) return; // 그 사이 다른 화면으로 이동함
             if (window.marked) {
                 body.innerHTML = renderMarkdown(md);
+                fixHashLinks(body, post.slug);
                 enhanceCode(body);
                 const toc = buildToc(body, post.slug);
-                if (toc) box.insertBefore(toc, body);
+                if (toc) out.insertBefore(toc, body);
             } else {
                 const pre = el('pre', 'post-raw', md);
                 body.replaceChildren(pre);
             }
         } catch (e) {
-            body.textContent = '글을 불러오지 못했어요.';
+            if (mine !== renderSeq) return;
+            // 미리 그려진 글은 그대로 읽을 수 있으니 남겨 둔다
+            if (swap) renderedSlug = post.slug;
+            else body.textContent = '글을 불러오지 못했어요.';
             return;
         }
-        if (!post.unlisted) renderPostNav(box, data, post);
+        if (!post.unlisted) renderPostNav(out, data, post);
+        if (swap) box.replaceChildren(out);
+        renderedSlug = post.slug;
     }
 
     let seq = 0;
-    async function blogRoute(parts) {
+    // parts: 주소에서 /blog/ 뒤의 경로 조각들 (인코딩된 그대로), anchor: 주소의 # 뒤 제목 id
+    async function blogRoute(parts, anchor) {
         const mine = ++seq;
         const root = document.getElementById('tab-blog');
         const crumb = root.querySelector('#blog-crumb');
@@ -605,11 +687,7 @@ function openBlog(folder) {
             }
         };
         const kind = parts[0];
-        // 글 주소 끝의 ?h=<제목id> 는 떼어 둔다
-        const rawRest = parts.slice(1).join('/');
-        const qAt = rawRest.indexOf('?');
-        const query = qAt >= 0 ? new URLSearchParams(rawRest.slice(qAt + 1)) : new URLSearchParams();
-        const rest = (qAt >= 0 ? rawRest.slice(0, qAt) : rawRest).split('/').map(safe).filter(Boolean).join('/');
+        const rest = parts.slice(1).map(safe).filter(Boolean).join('/');
 
         if (kind === 'post') {
             const found = data.posts.find((p) => p.slug === rest) || (await loadUnlisted(rest));
@@ -618,17 +696,34 @@ function openBlog(folder) {
             crumb.hidden = true;
             post.hidden = false;
             if (!found) {
+                renderSeq++;
+                // 글 목록(posts.json)을 못 받았거나 아직 반영되기 전이어도, 미리 그려진 글이 떠 있으면 그대로 둔다
+                if (post.dataset.prerendered === rest) {
+                    currentSlug = rest;
+                    renderedSlug = rest;
+                    pendingAnchor = anchor || null;
+                    return;
+                }
+                renderedSlug = '';
                 post.replaceChildren();
                 const back = el('a', 'post-back', '← 블로그');
-                back.href = '#blog';
+                back.href = blogHref.home;
                 post.append(back, el('div', 'blog-empty', '글을 찾을 수 없어요.'));
                 return;
             }
             document.title = found.title + ' | sasak2';
-            await renderPost(post, data, found, query.get('h'));
+            // 같은 글이 이미 그려져 있으면 다시 그리지 않는다 (제목 위치만 바뀐 뒤로/앞으로 가기 등)
+            if (renderedSlug === found.slug) {
+                pendingAnchor = anchor || null;
+                return;
+            }
+            await renderPost(post, data, found, anchor);
             return;
         }
 
+        renderSeq++; // 그리던 글이 있으면 버린다
+        renderedSlug = '';
+        delete post.dataset.prerendered;
         post.hidden = true;
         post.replaceChildren();
         browse.hidden = false;

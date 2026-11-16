@@ -4,14 +4,32 @@
 
 ## 구조
 
-- `index.html`, `script.js`, `styles.css`: 왼쪽 사이드바(모바일은 상단 메뉴), 해시 라우팅, 다크 테마 스타일. 페이지 내용은 `sections/*.html`을 불러와요.
+- `index.html`, `script.js`, `styles.css`: 왼쪽 사이드바(모바일은 상단 메뉴), 주소에 따라 화면을 바꾸는 라우팅, 다크 테마 스타일. 페이지 내용은 `sections/*.html`을 불러와요.
 - `showcase.js`: 메인 페이지 스크롤 애니메이션(소개, 전자, 해킹, 알고리즘, 메이커, 체스, 베이스). 순서와 문구는 `sections/main.html`에서, 사이드바 항목은 `index.html`에서 바꿔요. 파일을 고친 뒤에는 `node scripts/build-posts.mjs`를 실행해 캐시 버전(`?v=`)을 갱신하세요.
 - `blog.js`: 블로그 폴더 트리(접기/펴기), 태그 보기, 글 렌더링.
 - `posts/<폴더>/.../<글>.md`: 블로그 글. 폴더 경로가 분류가 돼요. `posts.json`은 이 파일들에서 자동으로 만들어져요.
+- `blog/`, `history/`, `work/`, `links/`, `p/`, `404.html`: 주소마다 열리는 실제 페이지. 전부 `scripts/build-posts.mjs`가 만드는 파일이라 직접 고치지 않아요 (아래 "주소 구조" 참고).
+
+## 주소 구조
+
+주소는 `#` 없이 경로로 돼 있어요. 글마다 실제 페이지가 있어서, 주소 표시줄의 주소를 그대로 복사해 공유해도 글 제목과 요약이 미리보기로 떠요.
+
+| 주소 | 화면 | 실제 파일 |
+| --- | --- | --- |
+| `/` | 메인. 섹션 위치는 `/#main/circuit`처럼 뒤에 붙어요 | `index.html` |
+| `/blog/`, `/history/`, `/work/`, `/links/` | 블로그 전체글, 이력, 작업, 링크 | `blog/index.html` 등 |
+| `/blog/post/<폴더>/<글>/` | 글. 제목 위치는 `#sec-...`로 붙어요 | `blog/post/<폴더>/<글>/index.html` |
+| `/blog/folder/<폴더>/`, `/blog/tag/<태그>/` | 폴더, 태그 목록 | 없음 (`404.html`이 받아서 그려요) |
+
+- 사이트 안에서 링크를 누르면 페이지를 새로 불러오지 않고 화면만 바뀌어요 (`script.js`의 `navigate`, `route`).
+- 글 페이지에는 본문이 미리 들어 있고 `<title>`, 설명, `og:` 태그가 글마다 달라요. 링크 미리보기와 검색엔진은 이 내용을 읽어요.
+- GitHub Pages는 파일이 없는 주소에 `404.html`을 보여줘요. `404.html`도 같은 틀이라 폴더, 태그 주소를 직접 열거나 새로고침해도 같은 화면이 나와요.
+- 예전 주소도 계속 열려요: `/#blog/post/글?h=제목` 같은 해시 주소는 새 주소로 바뀌고, `/p/글/`은 새 글 주소로 넘어가요.
+- `index.html`의 `<base href="/">`는 지우면 안 돼요. 주소가 깊어져도 `styles.css`, `posts/img/...` 같은 상대 경로가 사이트 루트 기준으로 풀리게 해 줘요.
 
 ## 글 쓰는 법
 
-`posts/` 아래 폴더에 마크다운 파일을 추가하면 돼요. 파일 이름은 영어나 번호로 쓰고, 폴더 경로가 주소(`#blog/post/폴더/.../파일이름`)가 돼요.
+`posts/` 아래 폴더에 마크다운 파일을 추가하면 돼요. 파일 이름은 영어나 번호로 쓰고, 폴더 경로가 주소(`/blog/post/폴더/.../파일이름/`)가 돼요.
 
 ```
 posts/hacking/dreamhack/123.md
@@ -31,7 +49,7 @@ summary: 목록에 보일 한두 줄 요약
 - 폴더마다 `_folder.json`으로 화면에 보일 이름을 정해요: `{ "title": "드림핵", "description": "설명", "order": 1 }`. 없으면 폴더 이름이 그대로 보여요. 하위 폴더는 자유롭게 만들 수 있어요.
 - 최상위 폴더가 메인의 "확인해보기" 버튼과 연결돼요: `electronics`, `hacking`, `algorithm`, `maker`, `chess`, `bass`. 해당 폴더에 글이 없으면 버튼이 "준비 중"으로 비활성화돼요. 새 섹션을 만들면 `sections/main.html`의 `data-folder`와 `openBlog('폴더')`를 맞춰요.
 - 글 상단에 `updated: 2026-10-30`을 적으면 최종 수정일로 표시돼요. 안 적으면 GitHub Actions가 git 이력의 마지막 수정일을 써요. 작성일과 같은 날이면 표시하지 않아요.
-- `##`, `###` 제목이 3개 이상이면 목차가 생기고, 제목에 마우스를 올리면 나오는 `#`을 누르면 그 제목의 링크가 복사돼요 (`#blog/post/글주소?h=제목`).
+- `##`, `###` 제목이 3개 이상이면 목차가 생기고, 제목에 마우스를 올리면 나오는 `#`을 누르면 그 제목의 링크가 복사돼요 (`/blog/post/글주소/#sec-제목`).
 - 목차에 보이면 안 되는 제목(스포일러 등)은 앞뒤에 `<!-- toc:off -->`, `<!-- toc:on -->`을 한 줄씩(앞뒤 빈 줄 포함) 넣으면 목차에서 빠져요. 제목의 `#` 링크는 그대로 있어요.
 - 같은 폴더의 글끼리 날짜순으로 이전/다음 글 링크가 붙어요.
 - 블로그 검색은 제목, 요약, 태그, 폴더 이름, 본문을 찾아요. 본문은 빌드 때 만들어지는 `search.json`을 써요.
@@ -40,14 +58,14 @@ summary: 목록에 보일 한두 줄 요약
 - 유튜브 영상은 **한 줄에 주소만 단독으로** 쓰면 플레이어(youtube-nocookie)로 바뀌고 아래에 "YouTube에서 보기" 링크가 붙어요. 지원 형식은 `https://www.youtube.com/watch?v=ID`, `https://youtu.be/ID`, `https://www.youtube.com/shorts/ID`이고, 시작 시간은 주소 뒤에 `?t=90`, `&t=1m30s`, `&start=90`처럼 붙여요. `[글자](주소)` 링크 문법, 문장 중간의 주소, 목록/인용 안의 주소, 코드 블록과 인라인 코드 안의 주소는 플레이어가 되지 않고 그대로 남아요. 이 기능의 코드는 `blog.js`와 `scripts/build-posts.mjs`에 같은 블록(`youtube-embed:start` ~ `end`)으로 들어 있으니 한쪽만 고치지 마세요.
 - 수식은 LaTeX로 써요: 인라인 `$O(n)$`, 별도 줄 `$$ ... $$` (KaTeX). 달러 기호 자체는 `\$`로 써요. 코드 블록 안은 그대로 보여요.
 - `draft: true`를 넣으면 목록에서 빠져요.
-- `unlisted: true`를 넣으면 **링크로만 열리는 글**이 돼요. 블로그 목록, 폴더 글 수, 태그, 이전/다음 글, 검색, `sitemap.xml`에는 나오지 않고 `posts.json`, `search.json`에도 들어가지 않아요. 글 주소(`#blog/post/폴더/글`, `/p/폴더/글/`)로 직접 열면 보이고, 글 페이지(`p/...`)에는 `noindex, nofollow`가 들어가서 구글 검색에 안 나와요. 주소를 아는 사람은 열 수 있으니 비밀 글 용도로는 쓰지 마세요. 링크 전용 글의 경로(폴더, 파일 이름)는 그대로 주소가 되니 폴더/파일 이름을 추측하기 어렵게 지으면 더 좋아요.
+- `unlisted: true`를 넣으면 **링크로만 열리는 글**이 돼요. 블로그 목록, 폴더 글 수, 태그, 이전/다음 글, 검색, `sitemap.xml`에는 나오지 않고 `posts.json`, `search.json`에도 들어가지 않아요. 글 주소(`/blog/post/폴더/글/`)로 직접 열면 보이고, 글 페이지(`blog/post/...`)에는 `noindex, nofollow`가 들어가서 구글 검색에 안 나와요. 주소를 아는 사람은 열 수 있으니 비밀 글 용도로는 쓰지 마세요. 링크 전용 글의 경로(폴더, 파일 이름)는 그대로 주소가 되니 폴더/파일 이름을 추측하기 어렵게 지으면 더 좋아요.
 - `posts/_test/` 안의 글은 기능 확인용 샘플이라 사이트에 나오지 않아요. 로컬에서 보려면 `node scripts/build-posts.mjs --with-test`로 빌드하고, 그 결과(`posts.json`, `search.json`)는 커밋하지 마세요.
-- `main`에 푸시하면 GitHub Actions(`.github/workflows/build-posts.yml`)가 `posts.json`을 갱신해요. 직접 갱신하려면 `node scripts/build-posts.mjs`를 실행하세요.
+- `main`에 푸시하면 GitHub Actions(`.github/workflows/build-posts.yml`)가 `posts.json`, `search.json`, `sitemap.xml`과 주소별 페이지(`blog/`, `history/`, `work/`, `links/`, `p/`, `404.html`)를 갱신해요. 직접 갱신하려면 `npm ci` 후 `node scripts/build-posts.mjs`를 실행하세요.
 
 ## 로컬에서 보기
 
 ```
-python3 -m http.server 8000
+node scripts/serve.mjs
 ```
 
-그리고 `http://localhost:8000`을 열어요.
+그리고 `http://localhost:8000`을 열어요. GitHub Pages와 같은 규칙(폴더 주소는 `index.html`, 없는 주소는 `404.html`)으로 보여주는 작은 서버예요. `python3 -m http.server`로도 볼 수 있지만, 그 서버는 `404.html`을 쓰지 않아서 폴더/태그 주소를 직접 열거나 새로고침하면 안 열려요.
